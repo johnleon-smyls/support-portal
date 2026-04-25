@@ -1,6 +1,6 @@
 export function stripHtml(html: string): string {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').trim();
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function decodeHtmlEntities(text: string): string {
