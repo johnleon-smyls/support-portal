@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
+import { useState } from 'react';
 import { useArticle, useCategories } from '@/hooks/use-articles';
+import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { formatDate, safeHtml } from '@/lib/format';
@@ -16,6 +18,7 @@ import { useAuth } from '@/lib/auth';
 
 export default function ArticleDetailsPage() {
   const { isAgent } = useAuth();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const params = useParams();
   const articleId = params?.id as string;
   const { data: article, isLoading, error } = useArticle(articleId);
@@ -61,16 +64,13 @@ export default function ArticleDetailsPage() {
           <div className="max-w-4xl mx-auto">
             {/* Article Header */}
             <Card className="mb-6">
-              <CardHeader>
-                <div className="space-y-4">
-                  {/* Category and Status Badges */}
+              <CardHeader className="pt-8 pb-4">
+                <div className="space-y-3">
+                  {/* Category Badge */}
                   <div className="flex items-center space-x-2">
                     {article.category && (
                       <Badge variant="outline">{categoryName}</Badge>
                     )}
-                    <Badge className="bg-primary text-primary-foreground border-none">
-                      {article.status}
-                    </Badge>
                   </div>
 
                   {/* Title */}
@@ -114,16 +114,21 @@ export default function ArticleDetailsPage() {
 
             {/* Need More Help */}
             {!isAgent && (
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="text-center space-y-4">
-                    <p className="text-muted-foreground">
-                      If this article didn&apos;t solve your problem, our support team is here to help.
-                    </p>
-                    <div className="flex justify-center space-x-4">
-                      <Link href="/tickets/new">
-                        <Button>Create Support Ticket</Button>
-                      </Link>
+              <Card className="mt-8">
+                <CardContent className="py-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium mb-3 text-foreground">
+                      Can&apos;t find what you&apos;re looking for?
+                    </h3>
+                    <div className="flex flex-col items-center gap-2">
+                      <Button onClick={() => setShowCreateDialog(true)}>Create a ticket</Button>
+                      <CreateTicketDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+                      <span className="text-sm text-muted-foreground">
+                        Contact us:{' '}
+                        <a href="mailto:support@smyls.ca" className="text-primary hover:underline">
+                          support@smyls.ca
+                        </a>
+                      </span>
                     </div>
                   </div>
                 </CardContent>

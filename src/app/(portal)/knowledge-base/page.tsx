@@ -5,6 +5,7 @@
 import { useMemo, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ import { useAuth } from '@/lib/auth';
 
 export default function KnowledgeBasePage() {
   const { isAgent } = useAuth();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data, isLoading, error } = useArticles();
   const { data: categoryMap } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -215,9 +217,8 @@ export default function KnowledgeBasePage() {
                   Can&apos;t find what you&apos;re looking for?
                 </h3>
                 <div className="flex flex-col items-center gap-2">
-                  <Link href="/tickets/new">
-                    <Button>Create a ticket</Button>
-                  </Link>
+                  <Button onClick={() => setShowCreateDialog(true)}>Create a ticket</Button>
+                  <CreateTicketDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
                   <span className="text-sm text-muted-foreground">
                     Contact us:{' '}
                     <a href="mailto:support@smyls.ca" className="text-primary hover:underline">
