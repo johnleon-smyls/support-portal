@@ -32,6 +32,7 @@ export function ScreenRecorder({ onRecordingReady, doctype, docname, disabled }:
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   const handleUpload = async () => {
     if (!blob) return;
@@ -132,16 +133,29 @@ export function ScreenRecorder({ onRecordingReady, doctype, docname, disabled }:
             )}
 
             <div className="flex gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={discardRecording}
-                disabled={isUploading}
-              >
-                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                Discard
-              </Button>
+              {confirmDiscard ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => { discardRecording(); setConfirmDiscard(false); }}
+                  disabled={isUploading}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Confirm Discard
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmDiscard(true)}
+                  disabled={isUploading}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Discard
+                </Button>
+              )}
               <Button
                 type="button"
                 size="sm"
