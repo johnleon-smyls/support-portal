@@ -2,7 +2,6 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
 import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -49,8 +48,7 @@ export function RichTextEditor({
         horizontalRule: false,
       }),
       Underline,
-      Image.configure({ inline: true, allowBase64: true }),
-      ImageResize.configure({ inline: true }),
+      ImageResize.configure({ inline: true, allowBase64: true }),
       Link.configure({
         openOnClick: false,
         autolink: false,
@@ -124,9 +122,9 @@ export function RichTextEditor({
     }
 
     // New link
-    const raw = window.prompt('Enter URL:', 'https://');
+    const raw = window.prompt('Enter URL:');
     if (!raw) return;
-    const url = raw.match(/^https?:\/\//) ? raw : `https://${raw}`;
+    const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
 
     const { from, to } = editor.state.selection;
     if (from === to) {
