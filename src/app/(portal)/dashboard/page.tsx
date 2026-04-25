@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { stripHtml, formatDate } from '@/lib/format';
+import { stripHtml, formatDate, formatDateTime } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import type { HDTicket } from '@/types/frappe';
@@ -141,7 +141,7 @@ function CustomerDashboard() {
                       <StatusBadge status={ticket.status} />
                     </div>
                     <span className="col-span-2 text-xs text-muted-foreground">
-                      {ticket.modified ? formatDate(ticket.modified) : 'N/A'}
+                      {ticket.modified ? formatDateTime(ticket.modified) : 'N/A'}
                     </span>
                   </div>
                 </Link>
@@ -295,12 +295,12 @@ function AgentDashboard() {
           <span className="col-span-4">Subject</span>
           <span className="col-span-2">Company</span>
           <span className="col-span-1">Status</span>
-          <button className="col-span-1 flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
+          <span className="col-span-1">Agent</span>
+          <button className="col-span-1 flex items-center gap-1 uppercase hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
             Priority
             {sortField === 'priority' && <ArrowUpDown className="h-3 w-3" />}
           </button>
-          <span className="col-span-1">Agent</span>
-          <button className="col-span-2 flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('modified')}>
+          <button className="col-span-2 flex items-center gap-1 uppercase hover:text-foreground transition-colors" onClick={() => toggleSort('modified')}>
             Updated
             {sortField === 'modified' && <ArrowUpDown className="h-3 w-3" />}
           </button>
@@ -345,14 +345,14 @@ function AgentDashboard() {
                     <div className="col-span-1">
                       <StatusBadge status={ticket.status} />
                     </div>
-                    <div className="col-span-1">
-                      <StatusBadge status={ticket.priority} />
-                    </div>
                     <span className="col-span-1 text-xs text-muted-foreground truncate">
                       {assignee ? assignee.split('@')[0] : '\u2014'}
                     </span>
+                    <div className="col-span-1">
+                      <StatusBadge status={ticket.priority} />
+                    </div>
                     <span className="col-span-2 text-xs text-muted-foreground">
-                      {formatDate(ticket.modified)}
+                      {formatDateTime(ticket.modified)}
                     </span>
                   </div>
                 </Link>
