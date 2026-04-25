@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  const { isAuthenticated, isLoading, hasHydrated } = useAuth();
+  const { isAuthenticated, isLoading, hasHydrated, isAgent } = useAuth();
   const router = useRouter();
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -15,12 +15,12 @@ export default function Home() {
     if (hasHydrated && !isLoading && !hasChecked) {
       setHasChecked(true);
       if (isAuthenticated) {
-        router.push('/dashboard');
+        router.push(isAgent ? '/admin' : '/dashboard');
       } else {
         router.push('/login');
       }
     }
-  }, [isAuthenticated, isLoading, hasHydrated, router, hasChecked]);
+  }, [isAuthenticated, isLoading, hasHydrated, isAgent, router, hasChecked]);
 
   // Show loading spinner while checking authentication
   return (

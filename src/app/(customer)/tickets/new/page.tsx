@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Loader2, Plus } from 'lucide-react';
-import { ProtectedLayout } from '@/components/layout/ProtectedLayout';
 import { useCreateTicket } from '@/hooks/use-tickets';
 import { GradientButton } from '@/components/ui/gradient-button';
 import { stripHtml } from '@/lib/format';
@@ -71,7 +70,7 @@ export default function NewTicketPage() {
   };
 
   return (
-    <ProtectedLayout>
+    <>
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -211,6 +210,6 @@ export default function NewTicketPage() {
           </CardContent>
         </Card>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

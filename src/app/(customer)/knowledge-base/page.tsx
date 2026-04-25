@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, BookOpen, Calendar, ThumbsUp } from 'lucide-react';
-import { ProtectedLayout } from '@/components/layout/ProtectedLayout';
 import { useArticles, useCategories } from '@/hooks/use-articles';
 import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -75,7 +74,7 @@ export default function KnowledgeBasePage() {
   };
 
   return (
-    <ProtectedLayout>
+    <>
       {/* Header Bar */}
       <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200">
         <h1
@@ -245,6 +244,6 @@ export default function KnowledgeBasePage() {
           </CardContent>
         </Card>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

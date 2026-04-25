@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
-import { ProtectedLayout } from '@/components/layout/ProtectedLayout';
 import { useArticle, useCategories } from '@/hooks/use-articles';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
@@ -26,7 +25,7 @@ export default function ArticleDetailsPage() {
   const isUnpublished = article && article.status !== 'Published';
 
   return (
-    <ProtectedLayout>
+    <>
       {/* Header Bar */}
       <div className="h-12 flex items-center px-6 border-b border-gray-200">
         <Link href="/knowledge-base">
@@ -156,6 +155,6 @@ export default function ArticleDetailsPage() {
           </div>
         )}
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

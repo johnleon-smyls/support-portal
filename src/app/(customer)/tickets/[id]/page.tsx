@@ -20,7 +20,6 @@ import {
   Clock,
   Tag,
 } from 'lucide-react';
-import { ProtectedLayout } from '@/components/layout/ProtectedLayout';
 import { useAuth } from '@/lib/auth';
 import { useTicket, useTicketReplies, useAddReply } from '@/hooks/use-tickets';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -63,17 +62,17 @@ export default function TicketDetailsPage() {
 
   if (isLoading) {
     return (
-      <ProtectedLayout>
+      <>
         <div className="flex-1 flex items-center justify-center h-full">
           <LoadingSpinner message="Loading ticket details..." />
         </div>
-      </ProtectedLayout>
+      </>
     );
   }
 
   if (ticketError) {
     return (
-      <ProtectedLayout>
+      <>
         <div className="flex flex-col min-h-0 h-full">
           <div className="h-12 flex items-center px-6 border-b border-gray-200 flex-shrink-0">
             <Link href="/dashboard">
@@ -90,25 +89,25 @@ export default function TicketDetailsPage() {
             />
           </div>
         </div>
-      </ProtectedLayout>
+      </>
     );
   }
 
   if (!ticket) {
     return (
-      <ProtectedLayout>
+      <>
         <div className="flex-1 flex items-center justify-center h-full">
           <ErrorState
             message="Ticket not found"
             backLink={{ href: '/dashboard', label: 'Back to Tickets' }}
           />
         </div>
-      </ProtectedLayout>
+      </>
     );
   }
 
   return (
-    <ProtectedLayout>
+    <>
       <div className="flex flex-col min-h-0 h-full">
         {/* Header Bar */}
         <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
@@ -349,6 +348,6 @@ export default function TicketDetailsPage() {
           </Card>
         </div>
       </div>
-    </ProtectedLayout>
+    </>
   );
 }

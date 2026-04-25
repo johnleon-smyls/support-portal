@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Ticket, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { ProtectedLayout } from '@/components/layout/ProtectedLayout';
 import { useTickets, useSearchTickets } from '@/hooks/use-tickets';
 import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -77,7 +76,6 @@ export default function DashboardPage() {
   }, [results, statusFilter, sortField, sortDirection]);
 
   return (
-    <ProtectedLayout>
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header Bar */}
         <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
@@ -213,6 +211,5 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </ProtectedLayout>
   );
 }
