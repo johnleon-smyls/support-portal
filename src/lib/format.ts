@@ -73,7 +73,13 @@ export function sanitizeHtml(html: string): string {
   });
 }
 
-/** Sanitize + transform Frappe URLs. The standard pipeline for rendering Frappe HTML. */
+/** Sanitize + transform Frappe URLs + fix relative links. */
 export function safeHtml(html: string): string {
-  return sanitizeHtml(transformFrappeUrls(html));
+  let result = sanitizeHtml(transformFrappeUrls(html));
+  // Fix links without protocol — href="google.com" → href="https://google.com"
+  result = result.replace(
+    /href="(?!https?:\/\/|mailto:|tel:|#|\/)(.*?)"/g,
+    'href="https://$1"'
+  );
+  return result;
 }

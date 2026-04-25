@@ -192,9 +192,9 @@ export default function TicketDetailPage() {
 
       {/* ── Body: main content + optional sidebar ───────────────────────────── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* ── Main area (scrollable) ────────────────────────────────────────── */}
+        {/* ── Main area ────────────────────────────────────────── */}
         <div className="flex-1 overflow-auto p-6 space-y-6">
-          {/* Subject + metadata row */}
+          {/* Subject + metadata */}
           <div>
             <h1 className="text-xl font-semibold text-foreground">
               {ticket.subject as string}
@@ -243,7 +243,7 @@ export default function TicketDetailPage() {
             </CardContent>
           </Card>
 
-          {/* ── Conversation thread ─────────────────────────────────────────── */}
+          {/* ── Conversation (scrollable when long) ────────────────────────── */}
           <div>
             <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" />
@@ -256,7 +256,7 @@ export default function TicketDetailPage() {
                 <p>No replies yet. Be the first to reply!</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
                 {communications.map((comm) => {
                   const senderEmail =
                     (comm.sender as string) || (comm.owner as string) || '';
@@ -337,7 +337,7 @@ export default function TicketDetailPage() {
             </div>
           )}
 
-          {/* ── Reply box ───────────────────────────────────────────────────── */}
+          {/* ── Reply box ────────────────────────────────────────────────── */}
           {ticketStatus !== 'Closed' && (
             <Card>
               <CardHeader>
