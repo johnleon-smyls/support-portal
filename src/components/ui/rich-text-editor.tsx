@@ -93,14 +93,34 @@ export function RichTextEditor({
 
   const addLink = useCallback(() => {
     if (!editor) return;
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('Enter URL:', previousUrl || 'https://');
-    if (url === null) return;
-    if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+
+    // If already on a link, allow editing or removing it
+    if (editor.isActive('link')) {
+      const previousUrl = editor.getAttributes('link').href;
+      const url = window.prompt('Edit URL (clear to remove):', previousUrl);
+      if (url === null) return;
+      if (url === '') {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      }
       return;
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+
+    const url = window.prompt('Enter URL:', 'https://');
+    if (!url) return;
+
+    const { from, to } = editor.state.selection;
+    if (from === to) {
+      // No text selected — insert the URL as clickable link text
+      const linkText = window.prompt('Link text:', url) || url;
+      editor.chain().focus()
+        .insertContent(`<a href="${url}" target="_blank">${linkText}</a>`)
+        .run();
+    } else {
+      // Text is selected — wrap it in a link
+      editor.chain().focus().setLink({ href: url }).run();
+    }
   }, [editor]);
 
   if (!editor) return null;
