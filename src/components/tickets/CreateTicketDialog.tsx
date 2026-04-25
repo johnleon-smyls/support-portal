@@ -21,13 +21,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Loader2, Plus, Sparkles } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { useCreateTicket } from '@/hooks/use-tickets';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 import { KBSuggestions } from '@/components/kb-suggestions/KBSuggestions';
-import { useAICategorize } from '@/hooks/use-ai';
+
 
 interface TicketForm {
   subject: string;
@@ -44,9 +44,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const { user } = useAuth();
   const createTicket = useCreateTicket();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<{ url: string; name: string }[]>([]);
-  const [aiSuggestion, setAiSuggestion] = useState<{ ticket_type: string; reasoning: string } | null>(null);
-  const categorizeMutation = useAICategorize();
+  const [recordings, setRecordings] = useState<{ url: string; name: string }[]>([]);
 
   const { register, handleSubmit, control, formState: { errors }, setValue, watch, reset } = useForm<TicketForm>({
     defaultValues: {
@@ -72,7 +70,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         raised_by: user?.email || '',
       });
       reset();
-      setAttachments([]);
+      setRecordings([]);
       setAiSuggestion(null);
       onOpenChange(false);
     } catch (err: unknown) {
@@ -127,51 +125,10 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               placeholder="Brief description of your issue"
               disabled={createTicket.isPending}
               aria-invalid={!!errors.subject}
-              {...register('subject', {
-                required: 'Subject is required',
-                onBlur: async (e) => {
-                  const subject = e.target.value;
-                  if (subject.length >= 10 && !aiSuggestion) {
-                    try {
-                      const result = await categorizeMutation.mutateAsync({ subject, description: '' });
-                      if (result?.confidence > 0.5) {
-                        setAiSuggestion(result);
-                      }
-                    } catch { /* AI is optional */ }
-                  }
-                },
-              })}
+              {...register('subject', { required: 'Subject is required' })}
             />
             {errors.subject && (
               <p className="text-sm text-destructive">{errors.subject.message}</p>
-            )}
-            {aiSuggestion && (
-              <div className="flex items-center gap-2 p-2 rounded-md bg-smyls-blue-50 border border-smyls-blue-100 text-sm">
-                <Sparkles className="h-3.5 w-3.5 text-smyls-blue-500 shrink-0" />
-                <span className="text-muted-foreground">
-                  Suggested: <strong>{aiSuggestion.ticket_type}</strong>
-                  {' — '}{aiSuggestion.reasoning}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  className="ml-auto shrink-0"
-                  onClick={() => {
-                    setValue('ticketType', aiSuggestion.ticket_type);
-                    setAiSuggestion(null);
-                  }}
-                >
-                  Apply
-                </Button>
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground hover:underline shrink-0"
-                  onClick={() => setAiSuggestion(null)}
-                >
-                  Dismiss
-                </button>
-              </div>
             )}
           </div>
 
@@ -201,21 +158,18 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           <div className="space-y-2">
             <Label>Screen Recording</Label>
             <ScreenRecorder
-              onRecordingReady={(url, name) => setAttachments(prev => [...prev, { url, name }])}
+              onRecordingReady={(url, name) => {
+                setRecordings(prev => [...prev, { url, name }]);
+                const current = watch('description');
+                setValue('description', current + `<p><a href="${url}" target="_blank">Screen Recording: ${name}</a></p>`);
+              }}
               disabled={createTicket.isPending}
             />
-            {attachments.length > 0 && (
+            {recordings.length > 0 && (
               <div className="space-y-1">
-                {attachments.map((a, i) => (
+                {recordings.map((a, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="truncate">{a.name}</span>
-                    <button
-                      type="button"
-                      className="text-destructive hover:underline text-xs"
-                      onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
-                    >
-                      Remove
-                    </button>
+                    <a href={a.url} target="_blank" className="text-primary hover:underline truncate">{a.name}</a>
                   </div>
                 ))}
               </div>
