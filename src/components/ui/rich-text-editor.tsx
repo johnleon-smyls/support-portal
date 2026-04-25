@@ -16,7 +16,7 @@ import {
   ImageIcon,
 } from 'lucide-react';
 import { Button } from './button';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -32,6 +32,7 @@ export function RichTextEditor({
   disabled = false,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [, setTick] = useState(0);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -62,6 +63,8 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    onSelectionUpdate: () => setTick(t => t + 1),
+    onTransaction: () => setTick(t => t + 1),
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
@@ -107,18 +110,19 @@ export function RichTextEditor({
       return;
     }
 
-    const url = window.prompt('Enter URL:', 'https://');
-    if (!url) return;
+    const rawUrl = window.prompt('Enter URL:', 'https://');
+    if (!rawUrl) return;
+
+    // Auto-prepend https:// if no protocol
+    const url = rawUrl.match(/^https?:\/\//) ? rawUrl : `https://${rawUrl}`;
 
     const { from, to } = editor.state.selection;
     if (from === to) {
-      // No text selected — insert the URL as clickable link text
       const linkText = window.prompt('Link text:', url) || url;
       editor.chain().focus()
         .insertContent(`<a href="${url}" target="_blank">${linkText}</a>`)
         .run();
     } else {
-      // Text is selected — wrap it in a link
       editor.chain().focus().setLink({ href: url }).run();
     }
   }, [editor]);
@@ -169,7 +173,7 @@ export function RichTextEditor({
 
         <div className="w-px bg-border mx-1" />
 
-        <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Insert Link">
+        <ToolbarButton onClick={addLink} title="Insert Link">
           <Link2 className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Insert Image">
