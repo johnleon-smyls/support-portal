@@ -24,7 +24,7 @@ import { useAuth } from '@/lib/auth';
 import { useTicket, useTicketReplies, useAddReply } from '@/hooks/use-tickets';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { BRAND_GRADIENT, BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
+import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { stripHtml, transformFrappeUrls, formatDate } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import type { HDTicket } from '@/types/frappe';
@@ -116,7 +116,7 @@ export default function TicketDetailsPage() {
               Back to Tickets
             </Button>
           </Link>
-          <span className="text-sm text-gray-500" style={{ fontFamily: FONT_FAMILY }}>
+          <span className="text-sm text-gray-500">
             #{ticket.name}
           </span>
         </div>
@@ -128,7 +128,7 @@ export default function TicketDetailsPage() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-xl mb-3" style={{ fontFamily: FONT_FAMILY }}>
+                  <CardTitle className="text-xl mb-3">
                     {ticket.subject}
                   </CardTitle>
 
@@ -322,7 +322,6 @@ export default function TicketDetailsPage() {
                             <Button
                               type="submit"
                               disabled={isSubmittingReply || !stripHtml(newReply).trim()}
-                              style={{ fontFamily: FONT_FAMILY }}
                             >
                               {isSubmittingReply ? (
                                 <>

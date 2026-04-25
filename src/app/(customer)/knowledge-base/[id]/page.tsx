@@ -11,7 +11,7 @@ import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { useArticle, useCategories } from '@/hooks/use-articles';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
+import { BRAND_PRIMARY } from '@/lib/theme';
 import { formatDate } from '@/lib/format';
 
 export default function ArticleDetailsPage() {

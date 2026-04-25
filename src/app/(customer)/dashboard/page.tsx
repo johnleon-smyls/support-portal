@@ -11,7 +11,6 @@ import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FONT_FAMILY } from '@/lib/theme';
 import { stripHtml, formatDate } from '@/lib/format';
 import type { HDTicket } from '@/types/frappe';
 
@@ -79,11 +78,11 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col min-h-0">
         {/* Header Bar */}
         <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
-          <h1 className="text-xl font-medium" style={{ color: '#000', fontFamily: FONT_FAMILY }}>
+          <h1 className="text-xl font-medium text-foreground">
             Tickets
           </h1>
           <Link href="/tickets/new">
-            <Button className="h-8 px-2 rounded-lg cursor-pointer" style={{ fontFamily: FONT_FAMILY }}>
+            <Button className="h-8 px-2 rounded-lg cursor-pointer">
               <Plus className="h-2.5 w-2.5 mr-2" />
               <span className="text-lg font-medium">Create</span>
             </Button>
@@ -101,7 +100,6 @@ export default function DashboardPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-10 h-10 rounded-lg border-gray-300"
-                style={{ fontFamily: FONT_FAMILY }}
               />
             </div>
           </div>
@@ -114,7 +112,6 @@ export default function DashboardPage() {
                 variant={statusFilter === filter ? 'default' : 'outline'}
                 className={`h-8 px-3 text-sm cursor-pointer ${statusFilter === filter ? 'cursor-default' : ''}`}
                 onClick={() => setStatusFilter(filter)}
-                style={{ fontFamily: FONT_FAMILY }}
               >
                 {filter}
               </Badge>
@@ -129,16 +126,15 @@ export default function DashboardPage() {
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-200 flex-shrink-0 bg-gray-100">
               <div className="col-span-6 flex items-center">
-                <span className="text-sm font-medium" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>Subject</span>
+                <span className="text-sm font-medium text-muted-foreground">Subject</span>
               </div>
               <div className="col-span-2 flex items-center">
-                <span className="text-sm font-medium" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>Status</span>
+                <span className="text-sm font-medium text-muted-foreground">Status</span>
               </div>
               <div className="col-span-2 flex items-center">
                 <button
                   onClick={() => handleSort('creation')}
-                  className="flex items-center text-sm font-medium hover:text-gray-900 transition-colors"
-                  style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}
+                  className="flex items-center text-sm font-medium text-muted-foreground hover:text-gray-900 transition-colors"
                 >
                   Created{getSortIcon('creation')}
                 </button>
@@ -146,8 +142,7 @@ export default function DashboardPage() {
               <div className="col-span-2 flex items-center">
                 <button
                   onClick={() => handleSort('modified')}
-                  className="flex items-center text-sm font-medium hover:text-gray-900 transition-colors"
-                  style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}
+                  className="flex items-center text-sm font-medium text-muted-foreground hover:text-gray-900 transition-colors"
                 >
                   Last Updated{getSortIcon('modified')}
                 </button>
@@ -166,7 +161,7 @@ export default function DashboardPage() {
                   title="No tickets found"
                   action={
                     <Link href="/tickets/new">
-                      <Button style={{ fontFamily: FONT_FAMILY }}>Create a ticket</Button>
+                      <Button>Create a ticket</Button>
                     </Link>
                   }
                 />
@@ -180,10 +175,10 @@ export default function DashboardPage() {
                         }`}
                       >
                         <div className="col-span-6 flex flex-col justify-center">
-                          <h3 className="text-sm font-medium mb-1" style={{ color: '#000', fontFamily: FONT_FAMILY }}>
+                          <h3 className="text-sm font-medium mb-1 text-foreground">
                             {ticket.subject}
                           </h3>
-                          <p className="text-xs line-clamp-1" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>
+                          <p className="text-xs line-clamp-1 text-muted-foreground">
                             {stripHtml(ticket.description)}
                           </p>
                         </div>
@@ -193,12 +188,12 @@ export default function DashboardPage() {
                           </Badge>
                         </div>
                         <div className="col-span-2 flex items-center">
-                          <span className="text-xs" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>
+                          <span className="text-xs text-muted-foreground">
                             {ticket.creation ? formatDate(ticket.creation) : 'N/A'}
                           </span>
                         </div>
                         <div className="col-span-2 flex items-center">
-                          <span className="text-xs" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>
+                          <span className="text-xs text-muted-foreground">
                             {ticket.modified ? formatDate(ticket.modified) : 'N/A'}
                           </span>
                         </div>

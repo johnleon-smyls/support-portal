@@ -14,7 +14,7 @@ import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { BRAND_GRADIENT, BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
+import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { truncateText, formatDate } from '@/lib/format';
 import { HDArticle } from '@/types/frappe';
 
@@ -77,8 +77,7 @@ export default function KnowledgeBasePage() {
       {/* Header Bar */}
       <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200">
         <h1
-          className="text-xl font-medium"
-          style={{ color: '#000', fontFamily: FONT_FAMILY }}
+          className="text-xl font-medium text-foreground"
         >
           Knowledge Base
         </h1>
@@ -98,7 +97,6 @@ export default function KnowledgeBasePage() {
                 if (!categories.some(c => c.name === e.target.value)) setSelectedCategory(null);
               }}
               className="pl-10 h-10 rounded-lg border-gray-300"
-              style={{ fontFamily: FONT_FAMILY }}
             />
           </div>
 
@@ -116,7 +114,6 @@ export default function KnowledgeBasePage() {
                       background: selectedCategory === cat.id ? BRAND_GRADIENT : 'transparent',
                       borderColor: BRAND_PRIMARY,
                       color: selectedCategory === cat.id ? 'white' : BRAND_PRIMARY,
-                      fontFamily: FONT_FAMILY,
                     }}
                   >
                     {cat.name}
@@ -175,8 +172,7 @@ export default function KnowledgeBasePage() {
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
                       <CardTitle
-                        className="text-lg line-clamp-2 flex-1"
-                        style={{ color: '#000', fontFamily: FONT_FAMILY }}
+                        className="text-lg line-clamp-2 flex-1 text-foreground"
                       >
                         {article.title || 'Untitled Article'}
                       </CardTitle>
@@ -223,8 +219,7 @@ export default function KnowledgeBasePage() {
           <CardContent className="py-4">
             <div className="text-center">
               <h3
-                className="text-lg font-medium mb-3"
-                style={{ color: '#000', fontFamily: FONT_FAMILY }}
+                className="text-lg font-medium mb-3 text-foreground"
               >
                 Can&apos;t find what you&apos;re looking for?
               </h3>
