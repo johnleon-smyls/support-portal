@@ -31,8 +31,11 @@ async function proxyToFrappe(
     Accept: 'application/json',
   };
 
-  // Don't set Content-Type for multipart — let fetch set it with the boundary
-  if (!isMultipart) {
+  // For multipart, forward the original Content-Type (includes boundary)
+  // For everything else, set JSON
+  if (isMultipart) {
+    headers['Content-Type'] = contentType;
+  } else {
     headers['Content-Type'] = 'application/json';
   }
 
