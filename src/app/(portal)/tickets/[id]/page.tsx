@@ -79,6 +79,7 @@ export default function TicketDetailPage() {
   // ── Derived data ───────────────────────────────────────────────────────────
   const communications = ticket
     ? ((ticket.communications as Array<Record<string, unknown>>) || [])
+        .sort((a, b) => new Date(a.creation as string).getTime() - new Date(b.creation as string).getTime())
     : [];
   const comments = ticket
     ? ((ticket.comments as Array<Record<string, unknown>>) || [])
