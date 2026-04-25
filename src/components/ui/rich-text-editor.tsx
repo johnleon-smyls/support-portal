@@ -33,7 +33,7 @@ import {
   Minus
 } from 'lucide-react';
 import { Button } from './button';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -93,6 +93,15 @@ export function RichTextEditor({
       },
     },
   });
+
+  // Sync external content changes (e.g. AI suggestions populating the editor)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  // Only sync when content changes externally, not on every editor keystroke
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (!editor) return;
