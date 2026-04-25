@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Send, MessageSquare, StickyNote, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, MessageSquare, StickyNote, Loader2, Sparkles, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/format';
 import { stripHtml } from '@/lib/format';
+import { useAISuggestReply, useAISummarize } from '@/hooks/use-ai';
 
 type ReplyMode = 'reply' | 'note';
 
@@ -45,6 +46,10 @@ export default function AdminTicketDetailPage() {
 
   const [replyContent, setReplyContent] = useState('');
   const [replyMode, setReplyMode] = useState<ReplyMode>('reply');
+  const [suggestions, setSuggestions] = useState<{ label: string; content: string }[]>([]);
+  const [summary, setSummary] = useState<string | null>(null);
+  const suggestMutation = useAISuggestReply();
+  const summarizeMutation = useAISummarize();
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-full"><LoadingSpinner message="Loading ticket..." /></div>;
@@ -179,7 +184,7 @@ export default function AdminTicketDetailPage() {
           {/* Reply Box */}
           <Card>
             <CardHeader>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant={replyMode === 'reply' ? 'default' : 'outline'}
                   size="sm"
@@ -196,6 +201,40 @@ export default function AdminTicketDetailPage() {
                   <StickyNote className="h-3 w-3 mr-1" />
                   Internal Note
                 </Button>
+                <div className="ml-auto flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const result = await suggestMutation.mutateAsync(ticketId);
+                      setSuggestions(result);
+                    }}
+                    disabled={suggestMutation.isPending}
+                  >
+                    {suggestMutation.isPending ? (
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3 mr-1" />
+                    )}
+                    AI Suggest
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const result = await summarizeMutation.mutateAsync(ticketId);
+                      setSummary(result);
+                    }}
+                    disabled={summarizeMutation.isPending}
+                  >
+                    {summarizeMutation.isPending ? (
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    ) : (
+                      <FileText className="h-3 w-3 mr-1" />
+                    )}
+                    Summarize
+                  </Button>
+                </div>
               </div>
               {replyMode === 'note' && (
                 <p className="text-xs text-status-yellow-700 mt-2">
@@ -203,7 +242,44 @@ export default function AdminTicketDetailPage() {
                 </p>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* AI Summary */}
+              {summary && (
+                <div className="p-3 rounded-md bg-smyls-blue-50 border border-smyls-blue-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold text-smyls-blue-700">AI Summary</span>
+                    <button className="text-xs text-muted-foreground hover:underline" onClick={() => setSummary(null)}>Dismiss</button>
+                  </div>
+                  <pre className="text-sm text-foreground whitespace-pre-wrap font-sans">{summary}</pre>
+                </div>
+              )}
+
+              {/* AI Suggestions */}
+              {suggestions.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">AI Suggestions</span>
+                    <button className="text-xs text-muted-foreground hover:underline" onClick={() => setSuggestions([])}>Dismiss</button>
+                  </div>
+                  <div className="grid gap-2">
+                    {suggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="text-left p-3 rounded-md border border-border hover:border-primary hover:bg-smyls-blue-50 transition-colors"
+                        onClick={() => {
+                          setReplyContent(s.content);
+                          setSuggestions([]);
+                        }}
+                      >
+                        <span className="text-xs font-semibold text-primary">{s.label}</span>
+                        <div className="text-sm text-muted-foreground mt-1 line-clamp-2" dangerouslySetInnerHTML={{ __html: s.content }} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <RichTextEditor
                 content={replyContent}
                 onChange={setReplyContent}

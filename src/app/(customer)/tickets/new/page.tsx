@@ -28,6 +28,8 @@ import { useCreateTicket } from '@/hooks/use-tickets';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
+import { useAICategorize } from '@/hooks/use-ai';
+import { Sparkles } from 'lucide-react';
 
 interface TicketForm {
   subject: string;
@@ -42,6 +44,8 @@ export default function NewTicketPage() {
   const createTicket = useCreateTicket();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<{ url: string; name: string }[]>([]);
+  const [aiSuggestion, setAiSuggestion] = useState<{ ticket_type: string; priority: string; reasoning: string } | null>(null);
+  const categorizeMutation = useAICategorize();
 
   const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<TicketForm>({
     defaultValues: {
@@ -153,10 +157,52 @@ export default function NewTicketPage() {
                   placeholder="Brief description of your issue"
                   disabled={createTicket.isPending}
                   aria-invalid={!!errors.subject}
-                  {...register('subject', { required: 'Subject is required' })}
+                  {...register('subject', {
+                    required: 'Subject is required',
+                    onBlur: async (e) => {
+                      const subject = e.target.value;
+                      if (subject.length >= 10 && !aiSuggestion) {
+                        try {
+                          const result = await categorizeMutation.mutateAsync({ subject, description: '' });
+                          if (result?.confidence > 0.5) {
+                            setAiSuggestion(result);
+                          }
+                        } catch { /* AI is optional */ }
+                      }
+                    },
+                  })}
                 />
                 {errors.subject && (
                   <p className="text-sm text-destructive">{errors.subject.message}</p>
+                )}
+                {aiSuggestion && (
+                  <div className="flex items-center gap-2 p-2 rounded-md bg-smyls-blue-50 border border-smyls-blue-100 text-sm">
+                    <Sparkles className="h-3.5 w-3.5 text-smyls-blue-500 shrink-0" />
+                    <span className="text-muted-foreground">
+                      Suggested: <strong>{aiSuggestion.ticket_type}</strong> / <strong>{aiSuggestion.priority}</strong>
+                      {' — '}{aiSuggestion.reasoning}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="xs"
+                      className="ml-auto shrink-0"
+                      onClick={() => {
+                        setValue('ticketType', aiSuggestion.ticket_type);
+                        setValue('priority', aiSuggestion.priority as 'Low' | 'Medium' | 'High' | 'Urgent');
+                        setAiSuggestion(null);
+                      }}
+                    >
+                      Apply
+                    </Button>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:underline shrink-0"
+                      onClick={() => setAiSuggestion(null)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 )}
               </div>
 
