@@ -27,6 +27,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { stripHtml, transformFrappeUrls, formatDate } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 import type { HDTicket } from '@/types/frappe';
 
 function getStatusIcon(status: HDTicket['status']) {
@@ -314,10 +315,16 @@ export default function TicketDetailsPage() {
                               placeholder="Type your reply here. You can format text, add images, links, and more using the toolbar above."
                               disabled={isSubmittingReply}
                             />
-                            <p className="text-sm text-gray-500 mt-2">
-                              Use the toolbar to format your text, add images, links, and more
+                            <p className="text-sm text-muted-foreground mt-2">
+                              Use the toolbar to format text, add images, links, and more
                             </p>
                           </div>
+                          <ScreenRecorder
+                            onRecordingReady={(url) => {
+                              setNewReply(prev => prev + `<p><a href="${url}" target="_blank">Screen Recording</a></p>`);
+                            }}
+                            disabled={isSubmittingReply}
+                          />
                           <div className="flex justify-end">
                             <Button
                               type="submit"
