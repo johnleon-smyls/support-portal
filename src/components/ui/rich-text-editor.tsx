@@ -75,14 +75,28 @@ export function RichTextEditor({
         const { state } = view;
         const linkMark = state.doc.resolve(pos).marks().find(m => m.type.name === 'link');
         if (linkMark) {
-          const href = linkMark.attrs.href;
+          const oldHref = linkMark.attrs.href;
           setTimeout(() => {
-            const newUrl = window.prompt('Edit URL (clear to remove):', href);
+            const newUrl = window.prompt('Edit URL (clear to remove):', oldHref);
             if (newUrl === null) return;
             if (newUrl === '') {
               editor?.chain().focus().extendMarkRange('link').unsetLink().run();
             } else {
-              editor?.chain().focus().extendMarkRange('link').setLink({ href: newUrl }).run();
+              // Get the current text of the link
+              editor?.chain().focus().extendMarkRange('link').run();
+              const { from, to } = editor!.state.selection;
+              const currentText = editor!.state.doc.textBetween(from, to);
+              // If display text matches old URL, update both text and href
+              if (currentText === oldHref) {
+                editor?.chain()
+                  .focus()
+                  .extendMarkRange('link')
+                  .deleteSelection()
+                  .insertContent(`<a href="${newUrl}" target="_blank">${newUrl}</a>`)
+                  .run();
+              } else {
+                editor?.chain().focus().extendMarkRange('link').setLink({ href: newUrl }).run();
+              }
             }
           }, 0);
           return true;
