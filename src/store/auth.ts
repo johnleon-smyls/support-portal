@@ -178,13 +178,19 @@ export const useAuthStore = create<AuthStore>()(
             throw new Error('No user email returned from session check');
           }
 
-          // IMPORTANT: If sessionEmail is "Administrator" but we have a persisted user,
-          // this likely means the API token is being used without proper session cookies.
-          // In this case, trust the persisted user and just mark loading as done.
+          // If session returns "Administrator" but we expected a different user,
+          // the session is invalid — force re-login rather than trusting stale state.
           if (sessionEmail === 'Administrator' && currentUser && currentUser.email !== 'Administrator') {
-            console.log('Session check returned Administrator but we have a persisted user, keeping:', currentUser.email);
-            set({ isLoading: false });
-            return true;
+            console.warn('Session returned Administrator instead of expected user — clearing auth state');
+            set({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              isAgent: false,
+              isAdmin: false,
+              isCustomer: true,
+            });
+            return false;
           }
 
           // If the session email matches our persisted user, refresh roles but keep user data

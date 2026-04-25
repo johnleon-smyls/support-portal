@@ -27,8 +27,7 @@ import {
   useAgents,
 } from '@/hooks/use-admin-tickets';
 import { useAuth } from '@/lib/auth';
-import { formatDate } from '@/lib/format';
-import { stripHtml } from '@/lib/format';
+import { formatDate, stripHtml, sanitizeHtml } from '@/lib/format';
 import { useAISuggestReply, useAISummarize } from '@/hooks/use-ai';
 
 type ReplyMode = 'reply' | 'note';
@@ -120,7 +119,7 @@ export default function AdminTicketDetailPage() {
               <CardTitle className="text-sm">Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: ticket.description as string }} />
+              <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(ticket.description as string) }} />
             </CardContent>
           </Card>
 
@@ -151,7 +150,7 @@ export default function AdminTicketDetailPage() {
                         {formatDate(comm.creation as string)}
                       </span>
                     </div>
-                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: comm.content as string }} />
+                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(comm.content as string) }} />
                   </div>
                 ))}
               </div>
@@ -174,7 +173,7 @@ export default function AdminTicketDetailPage() {
                       <span className="text-sm font-medium">{comment.commented_by as string}</span>
                       <span className="text-xs text-muted-foreground">{formatDate(comment.creation as string)}</span>
                     </div>
-                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: comment.content as string }} />
+                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(comment.content as string) }} />
                   </div>
                 ))}
               </div>
@@ -273,7 +272,7 @@ export default function AdminTicketDetailPage() {
                         }}
                       >
                         <span className="text-xs font-semibold text-primary">{s.label}</span>
-                        <div className="text-sm text-muted-foreground mt-1 line-clamp-2" dangerouslySetInnerHTML={{ __html: s.content }} />
+                        <div className="text-sm text-muted-foreground mt-1 line-clamp-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(s.content) }} />
                       </button>
                     ))}
                   </div>

@@ -45,3 +45,25 @@ export function transformFrappeUrls(html: string): string {
     `src="${frappeBaseUrl}$1"`
   );
 }
+
+/**
+ * Sanitize HTML to prevent XSS. Use this before passing any user/server
+ * content to dangerouslySetInnerHTML.
+ *
+ * Allows safe HTML tags (p, a, img, strong, em, etc.) but strips
+ * scripts, event handlers, and other dangerous content.
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return '';
+  // Dynamic import would be cleaner but DOMPurify is small and we use it everywhere
+  const DOMPurify = require('isomorphic-dompurify').default;
+  return DOMPurify.sanitize(html, {
+    ADD_TAGS: ['iframe'],
+    ADD_ATTR: ['target', 'allowfullscreen', 'frameborder'],
+  });
+}
+
+/** Sanitize + transform Frappe URLs. The standard pipeline for rendering Frappe HTML. */
+export function safeHtml(html: string): string {
+  return sanitizeHtml(transformFrappeUrls(html));
+}

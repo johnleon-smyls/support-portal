@@ -35,6 +35,14 @@ export function ScreenRecorder({ onRecordingReady, doctype, docname, disabled }:
 
   const handleUpload = async () => {
     if (!blob) return;
+
+    // 100MB limit — Frappe defaults to 10MB but we'll configure higher for recordings
+    const MAX_SIZE = 100 * 1024 * 1024;
+    if (blob.size > MAX_SIZE) {
+      setUploadError(`Recording is too large (${Math.round(blob.size / 1024 / 1024)}MB). Maximum is 100MB.`);
+      return;
+    }
+
     setIsUploading(true);
     setUploadError(null);
 

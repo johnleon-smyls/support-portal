@@ -12,7 +12,7 @@ import { useArticle, useCategories } from '@/hooks/use-articles';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { BRAND_PRIMARY } from '@/lib/theme';
-import { formatDate } from '@/lib/format';
+import { formatDate, safeHtml } from '@/lib/format';
 
 export default function ArticleDetailsPage() {
   const params = useParams();
@@ -110,7 +110,7 @@ export default function ArticleDetailsPage() {
               <CardContent className="pt-6">
                 <div
                   className="prose max-w-none prose-gray prose-headings:text-gray-900 prose-a:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: article.content }}
+                  dangerouslySetInnerHTML={{ __html: safeHtml(article.content) }}
                 />
               </CardContent>
             </Card>

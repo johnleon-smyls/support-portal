@@ -25,7 +25,7 @@ import { useTicket, useTicketReplies, useAddReply } from '@/hooks/use-tickets';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
-import { stripHtml, transformFrappeUrls, formatDate } from '@/lib/format';
+import { stripHtml, safeHtml, formatDate } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 import type { HDTicket } from '@/types/frappe';
@@ -195,7 +195,7 @@ export default function TicketDetailsPage() {
             <CardContent>
               <div
                 className="prose max-w-none prose-gray"
-                dangerouslySetInnerHTML={{ __html: transformFrappeUrls(ticket.description) }}
+                dangerouslySetInnerHTML={{ __html: safeHtml(ticket.description) }}
               />
             </CardContent>
           </Card>
@@ -212,7 +212,7 @@ export default function TicketDetailsPage() {
               <CardContent>
                 <div
                   className="prose max-w-none prose-gray"
-                  dangerouslySetInnerHTML={{ __html: transformFrappeUrls(ticket.resolution) }}
+                  dangerouslySetInnerHTML={{ __html: safeHtml(ticket.resolution) }}
                 />
               </CardContent>
             </Card>
@@ -293,7 +293,7 @@ export default function TicketDetailsPage() {
                                 </div>
                                 <div
                                   className={`prose max-w-none ${isFromCurrentUser ? 'prose-gray' : 'prose-invert'}`}
-                                  dangerouslySetInnerHTML={{ __html: transformFrappeUrls(reply.content) }}
+                                  dangerouslySetInnerHTML={{ __html: safeHtml(reply.content) }}
                                 />
                               </div>
                             );
