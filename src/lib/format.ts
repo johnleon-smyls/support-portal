@@ -37,6 +37,16 @@ export function formatDate(dateString: string): string {
   });
 }
 
+export function formatDateTime(dateString: string): string {
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export function transformFrappeUrls(html: string): string {
   if (!html) return html;
   const frappeBaseUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '';

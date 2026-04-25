@@ -40,7 +40,7 @@ import { useAddReply } from '@/hooks/use-tickets';
 import { useAISuggestReply, useAISummarize } from '@/hooks/use-ai';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { stripHtml, sanitizeHtml, formatDate } from '@/lib/format';
+import { stripHtml, sanitizeHtml, formatDate, formatDateTime } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 
@@ -79,7 +79,7 @@ export default function TicketDetailPage() {
   // ── Derived data ───────────────────────────────────────────────────────────
   const communications = ticket
     ? ((ticket.communications as Array<Record<string, unknown>>) || [])
-        .sort((a, b) => new Date(a.creation as string).getTime() - new Date(b.creation as string).getTime())
+        .sort((a, b) => new Date((a.communication_date || a.creation) as string).getTime() - new Date((b.communication_date || b.creation) as string).getTime())
     : [];
   const comments = ticket
     ? ((ticket.comments as Array<Record<string, unknown>>) || [])
@@ -278,7 +278,7 @@ export default function TicketDetailPage() {
                           </div>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {formatDate(comm.creation as string)}
+                          {formatDateTime((comm.communication_date || comm.creation) as string)}
                         </span>
                       </div>
                       <div
@@ -312,7 +312,7 @@ export default function TicketDetailPage() {
                         {comment.commented_by as string}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(comment.creation as string)}
+                        {formatDateTime(comment.creation as string)}
                       </span>
                     </div>
                     <div
