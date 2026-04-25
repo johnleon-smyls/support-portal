@@ -64,32 +64,31 @@ export default function ArticleDetailsPage() {
           <div className="max-w-4xl mx-auto">
             {/* Article Header */}
             <Card className="mb-6">
-              <CardHeader className="pt-8 pb-4">
-                <div className="space-y-3">
-                  {/* Category Badge */}
-                  <div className="flex items-center space-x-2">
-                    {article.category && (
-                      <Badge variant="outline">{categoryName}</Badge>
-                    )}
-                  </div>
-
+              <CardHeader>
+                <div className="space-y-2">
                   {/* Title */}
                   <CardTitle className="text-2xl md:text-3xl leading-tight">
                     {article.title}
                   </CardTitle>
 
-                  {/* Meta Information */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  {/* Meta — category inline with author and date */}
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <User className="h-4 w-4" />
                       <span>By {article.author || article.owner || 'Unknown'}</span>
                     </div>
 
+                    {article.category && (
+                      <>
+                        <span className="text-zinc-300">·</span>
+                        <Badge variant="outline" className="text-xs">{categoryName}</Badge>
+                      </>
+                    )}
+
+                    <span className="text-zinc-300">·</span>
                     <div className="flex items-center space-x-1">
                       <Calendar className="h-4 w-4" />
-                      <span>
-                        Published {article.creation ? formatDate(article.creation) : 'No date'}
-                      </span>
+                      <span>{article.creation ? formatDate(article.creation) : 'No date'}</span>
                     </div>
 
                     {article.modified && article.modified !== article.creation && (
