@@ -7,6 +7,29 @@ import { AuthStore, LoginCredentials, FrappeUser } from '@/types/auth';
 import { apiClient } from '@/lib/api';
 import { isDemoMode, DEMO_USER } from '@/lib/demo-data';
 
+// Fetch role info from Helpdesk's get_user endpoint
+async function fetchHelpdeskRoles(): Promise<{
+  is_agent: boolean;
+  is_admin: boolean;
+  is_manager: boolean;
+  has_desk_access: boolean;
+  user_image?: string;
+}> {
+  try {
+    const response = await apiClient.get('/method/helpdesk.api.auth.get_user');
+    const data = (response as { message?: Record<string, unknown> })?.message;
+    return {
+      is_agent: !!data?.is_agent,
+      is_admin: !!data?.is_admin,
+      is_manager: !!data?.is_manager,
+      has_desk_access: !!data?.has_desk_access,
+      user_image: data?.user_image as string | undefined,
+    };
+  } catch {
+    return { is_agent: false, is_admin: false, is_manager: false, has_desk_access: false };
+  }
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
@@ -15,6 +38,9 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
       hasHydrated: false,
       error: null,
+      isAgent: false,
+      isAdmin: false,
+      isCustomer: true,
 
       // === LOGIN (FR-02: Email/password login via Frappe API) ===
       login: async (credentials: LoginCredentials) => {
@@ -62,6 +88,9 @@ export const useAuthStore = create<AuthStore>()(
             console.warn('Could not fetch user details during login:', fetchError);
           }
 
+          // Fetch role info from Helpdesk
+          const roles = await fetchHelpdeskRoles();
+
           const user: FrappeUser = {
             name: credentials.usr,
             email: credentials.usr,
@@ -70,7 +99,12 @@ export const useAuthStore = create<AuthStore>()(
             last_name: lastName,
             roles: [],
             enabled: 1,
-            user_type: 'System User',
+            user_type: roles.has_desk_access ? 'System User' : 'Website User',
+            is_agent: roles.is_agent,
+            is_admin: roles.is_admin,
+            is_manager: roles.is_manager,
+            has_desk_access: roles.has_desk_access,
+            user_image: roles.user_image,
           };
 
           set({
@@ -78,6 +112,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            isAgent: roles.is_agent,
+            isAdmin: roles.is_admin,
+            isCustomer: !roles.is_agent && !roles.is_admin,
           });
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
@@ -105,6 +142,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            isAgent: false,
+            isAdmin: false,
+            isCustomer: true,
           });
         }
       },
@@ -147,10 +187,16 @@ export const useAuthStore = create<AuthStore>()(
             return true;
           }
 
-          // If the session email matches our persisted user, no need to re-fetch everything
+          // If the session email matches our persisted user, refresh roles but keep user data
           if (currentUser && currentUser.email === sessionEmail) {
             console.log('Session valid for user:', sessionEmail);
-            set({ isLoading: false });
+            const roles = await fetchHelpdeskRoles();
+            set({
+              isLoading: false,
+              isAgent: roles.is_agent,
+              isAdmin: roles.is_admin,
+              isCustomer: !roles.is_agent && !roles.is_admin,
+            });
             return true;
           }
 
@@ -235,6 +281,9 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        isAgent: state.isAgent,
+        isAdmin: state.isAdmin,
+        isCustomer: state.isCustomer,
       }),
       onRehydrateStorage: () => {
         return (state, error) => {

@@ -15,6 +15,10 @@ export interface FrappeUser {
   roles: string[];
   enabled?: number;
   user_type?: string;
+  is_agent?: boolean;
+  is_admin?: boolean;
+  is_manager?: boolean;
+  has_desk_access?: boolean;
 }
 
 export interface FrappeAuthResponse {
@@ -41,6 +45,9 @@ export interface AuthStore {
   isLoading: boolean;
   hasHydrated: boolean;
   error: string | null;
+  isAgent: boolean;
+  isAdmin: boolean;
+  isCustomer: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   clearError: () => void;
