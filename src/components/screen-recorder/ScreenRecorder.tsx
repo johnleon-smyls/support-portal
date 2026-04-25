@@ -59,7 +59,10 @@ export function ScreenRecorder({ onRecordingReady, doctype, docname, disabled }:
         onProgress: setUploadProgress,
       });
 
-      onRecordingReady(file.file_url, filename);
+      // Prepend Frappe URL so the link resolves correctly from the portal
+      const frappeUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '';
+      const fullUrl = file.file_url.startsWith('http') ? file.file_url : `${frappeUrl}${file.file_url}`;
+      onRecordingReady(fullUrl, filename);
       discardRecording();
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : 'Upload failed');
