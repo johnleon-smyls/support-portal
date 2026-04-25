@@ -41,20 +41,20 @@ export class TicketService implements ITicketService {
   }
 
   async getTicketReplies(ticketId: string): Promise<HDCommunication[]> {
-    const response = await apiClient.get<FrappeResponse<HDCommunication>>('/resource/HD Ticket Comment', {
-      params: {
-        filters: JSON.stringify({ reference_ticket: ticketId }),
-        fields: JSON.stringify(REPLY_FIELDS),
-        order_by: 'creation asc',
-      },
-    });
-    return response.data;
+    // Use Helpdesk's get_one which returns communications with proper permissions
+    const response = await apiClient.get<{ message: { communications: HDCommunication[] } }>(
+      '/method/helpdesk.helpdesk.doctype.hd_ticket.api.get_one',
+      { params: { name: ticketId } }
+    );
+    return response.message?.communications || [];
   }
 
   async addTicketReply(ticketId: string, content: string): Promise<HDCommunication> {
-    const response = await apiClient.post<{ data: HDCommunication }>('/resource/HD Ticket Comment', {
-      reference_ticket: ticketId,
-      content,
+    const response = await apiClient.post<{ data: HDCommunication }>('/method/run_doc_method', {
+      dt: 'HD Ticket',
+      dn: ticketId,
+      method: 'create_communication_via_contact',
+      args: JSON.stringify({ message: content }),
     });
     return response.data;
   }

@@ -253,17 +253,14 @@ export default function TicketDetailsPage() {
                         {[...replies]
                           .sort((a, b) => new Date(a.creation).getTime() - new Date(b.creation).getTime())
                           .map((reply) => {
-                            const sender = reply.commented_by || reply.owner;
+                            const sender = reply.sender || reply.owner;
                             const isFromCurrentUser = sender === user?.email;
-                            const isFromAdmin =
-                              sender === 'Administrator' ||
-                              sender?.includes('admin') ||
-                              (!sender?.includes('@example.com') && !isFromCurrentUser);
+                            const isFromAgent = reply.sent_or_received === 'Sent';
 
                             const getBackgroundStyle = () => {
                               if (isFromCurrentUser) return {};
-                              if (isFromAdmin) return { background: BRAND_PRIMARY, borderColor: BRAND_PRIMARY, color: 'white' };
-                              return { background: '#2ABDAD', borderColor: '#2ABDAD', color: 'white' };
+                              if (isFromAgent) return { background: BRAND_PRIMARY, borderColor: BRAND_PRIMARY, color: 'white' };
+                              return {};
                             };
 
                             return (

@@ -20,8 +20,8 @@ export interface FrappeDoc {
 export interface HDTicket extends FrappeDoc {
   subject: string;
   description: string;
-  status: 'Open' | 'Closed';
-  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  status: 'Open' | 'Replied' | 'Resolved' | 'Closed';
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
   ticket_type?: string;
   customer?: string;
   contact?: string;
@@ -41,27 +41,33 @@ export interface HDTicket extends FrappeDoc {
 export interface CreateTicketData {
   subject: string;
   description: string;
-  priority?: 'Low' | 'Medium' | 'High' | 'Critical';
+  priority?: 'Low' | 'Medium' | 'High' | 'Urgent';
   ticket_type?: string;
   raised_by?: string;
 }
 
-// === HD TICKET COMMENTS (FR-09: Ticket Replies) ===
+// === COMMUNICATION (Ticket Replies — via Frappe Communication doctype) ===
 export interface HDCommunication extends FrappeDoc {
   content: string;
-  commented_by: string; // User who made the comment
-  reference_ticket: string; // HD Ticket reference
-  is_pinned?: number; // 0 or 1
-
-  // Legacy fields for backward compatibility with Communication doctype
-  sender?: string;
+  sender: string;
   sender_full_name?: string;
   recipients?: string;
+  cc?: string;
+  bcc?: string;
   subject?: string;
-  communication_type?: 'Comment' | 'Email' | 'Phone' | 'Chat';
-  sent_or_received?: 'Sent' | 'Received';
+  communication_type: 'Communication' | 'Comment' | 'Automated Message';
+  communication_medium?: 'Email' | 'Chat' | 'Phone' | 'SMS' | 'Other';
+  sent_or_received: 'Sent' | 'Received';
   reference_doctype?: string;
   reference_name?: string;
+}
+
+// === HD TICKET COMMENT (Internal agent comments only) ===
+export interface HDTicketComment extends FrappeDoc {
+  content: string;
+  commented_by: string;
+  reference_ticket: string;
+  is_pinned?: number;
 }
 
 // === HD ARTICLE (FR-10: Knowledge Base Browsing, FR-12: Article Detail View) ===
@@ -128,6 +134,8 @@ export interface FrappeListOptions {
 // Ticket status colors and labels
 export const TICKET_STATUS_CONFIG = {
   'Open': { color: 'blue', label: 'Open' },
+  'Replied': { color: 'cyan', label: 'Replied' },
+  'Resolved': { color: 'green', label: 'Resolved' },
   'Closed': { color: 'gray', label: 'Closed' },
 } as const;
 
@@ -135,5 +143,5 @@ export const TICKET_PRIORITY_CONFIG = {
   'Low': { color: 'green', label: 'Low' },
   'Medium': { color: 'yellow', label: 'Medium' },
   'High': { color: 'orange', label: 'High' },
-  'Critical': { color: 'red', label: 'Critical' },
+  'Urgent': { color: 'red', label: 'Urgent' },
 } as const;

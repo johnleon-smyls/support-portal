@@ -69,8 +69,11 @@ export class DemoTicketService implements ITicketService {
     const reply: HDCommunication = {
       name: `REPLY-${Date.now()}`,
       content,
-      commented_by: 'demo@example.com',
-      reference_ticket: ticketId,
+      sender: 'demo@example.com',
+      communication_type: 'Communication',
+      sent_or_received: 'Received',
+      reference_doctype: 'HD Ticket',
+      reference_name: ticketId,
       owner: 'demo@example.com',
       creation: new Date().toISOString(),
       modified: new Date().toISOString(),

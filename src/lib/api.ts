@@ -202,27 +202,21 @@ class FrappeAPIClient {
     return this.put(`/resource/HD Ticket/${ticketId}`, ticketData);
   }
 
-  // === TICKET REPLIES (FR-09: Reply to open tickets with conversation thread) ===
+  // === TICKET REPLIES (via Helpdesk's whitelisted get_one, which includes communications) ===
   async getTicketReplies(ticketId: string) {
-    const params = {
-      filters: JSON.stringify({
-        reference_ticket: ticketId
-      }),
-      fields: JSON.stringify([
-        'name', 'content', 'commented_by', 'creation', 'modified',
-        'is_pinned', 'owner'
-      ]),
-      order_by: 'creation asc'
-    };
-
-    return this.get(`/resource/HD Ticket Comment`, { params });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response: any = await this.get(`/method/helpdesk.helpdesk.doctype.hd_ticket.api.get_one`, {
+      params: { name: ticketId },
+    });
+    return { data: response?.message?.communications || [] };
   }
 
-  async addTicketReply(ticketId: string, content: string, sender?: string) {
-    return this.post(`/resource/HD Ticket Comment`, {
-      reference_ticket: ticketId,
-      content: content,
-      commented_by: sender
+  async addTicketReply(ticketId: string, content: string) {
+    return this.post(`/method/run_doc_method`, {
+      dt: 'HD Ticket',
+      dn: ticketId,
+      method: 'create_communication_via_contact',
+      args: JSON.stringify({ message: content }),
     });
   }
 

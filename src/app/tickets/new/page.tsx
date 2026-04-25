@@ -40,7 +40,7 @@ export default function NewTicketPage() {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [ticketType, setTicketType] = useState('Support');
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Critical'>('Medium');
+  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('Medium');
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -124,7 +124,7 @@ export default function NewTicketPage() {
                 <Label htmlFor="priority">Priority</Label>
                 <Select
                   value={priority}
-                  onValueChange={(v) => setPriority(v as 'Low' | 'Medium' | 'High' | 'Critical')}
+                  onValueChange={(v) => setPriority(v as 'Low' | 'Medium' | 'High' | 'Urgent')}
                   disabled={createTicket.isPending}
                 >
                   <SelectTrigger>
