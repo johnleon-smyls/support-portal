@@ -71,7 +71,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       });
       reset();
       setRecordings([]);
-      setAiSuggestion(null);
       onOpenChange(false);
     } catch (err: unknown) {
       setSubmitError(err instanceof Error ? err.message : 'Failed to create ticket.');
