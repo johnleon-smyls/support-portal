@@ -55,10 +55,9 @@ export default function TicketDetailPage() {
   // ── Data fetching ──────────────────────────────────────────────────────────
   // Use the agent's get_one API for everyone — it works for all authenticated users
   const { data: ticket, isLoading, error } = useAdminTicket(ticketId);
-  const { data: agents } = useAgents();
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
-  // Agent mutations
+  // Agent-only hooks (always called for hook rules, but data only fetched for agents)
+  const { data: agents } = useAgents(isAgent);
   const replyMutation = useReplyToCustomer(ticketId);
   const noteMutation = useAddInternalNote(ticketId);
   const updateMutation = useUpdateTicket(ticketId);

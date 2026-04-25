@@ -26,11 +26,12 @@ export function useCustomers() {
   });
 }
 
-export function useAgents() {
+export function useAgents(enabled: boolean = true) {
   return useQuery({
     queryKey: ['hd-agents'],
     queryFn: () => adminTicketService.getAgents(),
     staleTime: 5 * 60 * 1000,
+    enabled,
   });
 }
 
