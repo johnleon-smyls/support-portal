@@ -320,10 +320,9 @@ function AgentDashboard() {
         {/* Header */}
         <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <span className="col-span-1">#</span>
-          <span className="col-span-4">Subject</span>
+          <span className="col-span-5">Subject</span>
           <span className="col-span-2">Company</span>
           <span className="col-span-1">Status</span>
-          <span className="col-span-1">Agent</span>
           <button className="col-span-1 flex items-center gap-1 uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
             Priority
             {sortField === 'priority' && <ArrowUpDown className="h-3 w-3" />}
@@ -359,7 +358,7 @@ function AgentDashboard() {
                     <span className="col-span-1 text-sm text-muted-foreground">
                       {ticket.name}
                     </span>
-                    <div className="col-span-4">
+                    <div className="col-span-5">
                       <p className="text-sm font-medium text-foreground truncate">
                         {ticket.subject}
                       </p>
@@ -373,9 +372,6 @@ function AgentDashboard() {
                     <div className="col-span-1">
                       <StatusBadge status={ticket.status} />
                     </div>
-                    <span className="col-span-1 text-xs text-muted-foreground truncate">
-                      {assignee ? assignee.split('@')[0] : '\u2014'}
-                    </span>
                     <div className="col-span-1">
                       <StatusBadge status={ticket.priority} />
                     </div>

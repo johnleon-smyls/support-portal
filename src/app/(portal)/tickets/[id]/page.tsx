@@ -568,24 +568,6 @@ export default function TicketDetailPage() {
               </Select>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Assigned To
-              </label>
-              <Select value={assignee || ''} onValueChange={handleAssign}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Unassigned" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents?.map((a) => (
-                    <SelectItem key={a.name} value={a.user}>
-                      {a.agent_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="border-t border-border pt-4 space-y-3">
               <div>
                 <span className="text-xs text-muted-foreground">Company</span>
@@ -608,13 +590,13 @@ export default function TicketDetailPage() {
               <div>
                 <span className="text-xs text-muted-foreground">Created</span>
                 <p className="text-sm">
-                  {formatDate(ticket.creation as string)}
+                  {formatDateTime(ticket.creation as string)}
                 </p>
               </div>
               <div>
                 <span className="text-xs text-muted-foreground">Last Updated</span>
                 <p className="text-sm">
-                  {formatDate(ticket.modified as string)}
+                  {formatDateTime(ticket.modified as string)}
                 </p>
               </div>
             </div>
