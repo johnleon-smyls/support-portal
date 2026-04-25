@@ -6,19 +6,15 @@ import { useAuth } from '@/lib/auth';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
-export default function CustomerLayout({ children }: { children: React.ReactNode }) {
+export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, isAuthenticated, hasHydrated, isAgent, logout } = useAuth();
+  const { user, isAuthenticated, hasHydrated, logout } = useAuth();
 
   useEffect(() => {
     if (hasHydrated && !isAuthenticated) {
       router.push('/login');
     }
-    // Redirect agents to admin
-    if (hasHydrated && isAuthenticated && isAgent) {
-      router.push('/admin');
-    }
-  }, [isAuthenticated, hasHydrated, isAgent, router]);
+  }, [isAuthenticated, hasHydrated, router]);
 
   const handleLogout = async () => {
     await logout();

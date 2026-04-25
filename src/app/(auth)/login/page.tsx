@@ -27,8 +27,7 @@ export default function LoginPage() {
     clearError();
     try {
       await login({ usr: data.email, pwd: data.password });
-      const state = (await import('@/store/auth')).useAuthStore.getState();
-      router.push(state.isAgent ? '/admin' : '/dashboard');
+      router.push('/dashboard');
     } catch {
       // Error is set in the auth store
     }

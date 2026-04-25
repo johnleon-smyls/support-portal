@@ -36,7 +36,6 @@ interface TicketForm {
   subject: string;
   description: string;
   ticketType: string;
-  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
 }
 
 export default function NewTicketPage() {
@@ -53,7 +52,6 @@ export default function NewTicketPage() {
       subject: '',
       description: '',
       ticketType: 'Support',
-      priority: 'Medium',
     },
   });
 
@@ -70,7 +68,6 @@ export default function NewTicketPage() {
         subject: data.subject,
         description: data.description,
         ticket_type: data.ticketType || 'Support',
-        priority: data.priority,
         raised_by: user?.email || '',
       });
       router.push('/dashboard');
@@ -129,27 +126,6 @@ export default function NewTicketPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Controller
-                  name="priority"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={createTicket.isPending}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="subject">
                   Subject <span className="text-destructive">*</span>
                 </Label>
@@ -180,7 +156,7 @@ export default function NewTicketPage() {
                   <div className="flex items-center gap-2 p-2 rounded-md bg-smyls-blue-50 border border-smyls-blue-100 text-sm">
                     <Sparkles className="h-3.5 w-3.5 text-smyls-blue-500 shrink-0" />
                     <span className="text-muted-foreground">
-                      Suggested: <strong>{aiSuggestion.ticket_type}</strong> / <strong>{aiSuggestion.priority}</strong>
+                      Suggested: <strong>{aiSuggestion.ticket_type}</strong>
                       {' — '}{aiSuggestion.reasoning}
                     </span>
                     <Button
@@ -190,7 +166,6 @@ export default function NewTicketPage() {
                       className="ml-auto shrink-0"
                       onClick={() => {
                         setValue('ticketType', aiSuggestion.ticket_type);
-                        setValue('priority', aiSuggestion.priority as 'Low' | 'Medium' | 'High' | 'Urgent');
                         setAiSuggestion(null);
                       }}
                     >
