@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface UseDebouncedSearchOptions<T> {
   items: T[];
@@ -16,24 +16,28 @@ export function useDebouncedSearch<T>({
   delay = 300,
 }: UseDebouncedSearchOptions<T>) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<T[]>(items);
+  const [results, setResults] = useState<T[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
-  useEffect(() => {
-    setResults(items);
-  }, [items]);
-
+  // Sync results with items when query is empty
   useEffect(() => {
     if (!query.trim()) {
       setResults(items);
+    }
+  }, [items, query]);
+
+  useEffect(() => {
+    if (!query.trim()) {
       setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
     const timeout = setTimeout(async () => {
-      // Local filter first
-      const localResults = items.filter((item) => filterFn(item, query));
+      const currentItems = itemsRef.current;
+      const localResults = currentItems.filter((item) => filterFn(item, query));
 
       if (localResults.length > 0 || !apiFn) {
         setResults(localResults);
@@ -41,7 +45,6 @@ export function useDebouncedSearch<T>({
         return;
       }
 
-      // Fall back to API search
       try {
         const apiResults = await apiFn(query);
         setResults(apiResults);
@@ -53,12 +56,12 @@ export function useDebouncedSearch<T>({
     }, delay);
 
     return () => clearTimeout(timeout);
-  }, [query, items, filterFn, apiFn, delay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, delay]);
 
   const clearSearch = useCallback(() => {
     setQuery('');
-    setResults(items);
-  }, [items]);
+  }, []);
 
   return { query, setQuery, results, isSearching, clearSearch };
 }

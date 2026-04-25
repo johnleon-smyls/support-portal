@@ -17,8 +17,10 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { truncateText, formatDate } from '@/lib/format';
 import { HDArticle } from '@/types/frappe';
+import { useAuth } from '@/lib/auth';
 
 export default function KnowledgeBasePage() {
+  const { isAgent } = useAuth();
   const { data, isLoading, error } = useArticles();
   const { data: categoryMap } = useCategories();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -215,28 +217,30 @@ export default function KnowledgeBasePage() {
         )}
 
         {/* Help Section */}
-        <Card className="mt-8">
-          <CardContent className="py-4">
-            <div className="text-center">
-              <h3
-                className="text-lg font-medium mb-3 text-foreground"
-              >
-                Can&apos;t find what you&apos;re looking for?
-              </h3>
-              <div className="flex flex-col items-center gap-2">
-                <Link href="/tickets/new">
-                  <Button>Create a ticket</Button>
-                </Link>
-                <span className="text-sm text-gray-600">
-                  Contact us:{' '}
-                  <a href="mailto:support@smyls.ca" className="text-blue-600 hover:underline">
-                    support@smyls.ca
-                  </a>
-                </span>
+        {!isAgent && (
+          <Card className="mt-8">
+            <CardContent className="py-4">
+              <div className="text-center">
+                <h3
+                  className="text-lg font-medium mb-3 text-foreground"
+                >
+                  Can&apos;t find what you&apos;re looking for?
+                </h3>
+                <div className="flex flex-col items-center gap-2">
+                  <Link href="/tickets/new">
+                    <Button>Create a ticket</Button>
+                  </Link>
+                  <span className="text-sm text-gray-600">
+                    Contact us:{' '}
+                    <a href="mailto:support@smyls.ca" className="text-primary hover:underline">
+                      support@smyls.ca
+                    </a>
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </>
   );

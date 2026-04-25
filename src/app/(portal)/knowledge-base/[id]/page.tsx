@@ -13,8 +13,10 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { BRAND_PRIMARY } from '@/lib/theme';
 import { formatDate, safeHtml } from '@/lib/format';
+import { useAuth } from '@/lib/auth';
 
 export default function ArticleDetailsPage() {
+  const { isAgent } = useAuth();
   const params = useParams();
   const articleId = params?.id as string;
   const { data: article, isLoading, error } = useArticle(articleId);
@@ -109,30 +111,29 @@ export default function ArticleDetailsPage() {
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <div
-                  className="prose max-w-none prose-gray prose-headings:text-gray-900 prose-a:text-blue-600"
+                  className="prose max-w-none prose-gray prose-headings:text-gray-900 prose-a:text-primary"
                   dangerouslySetInnerHTML={{ __html: safeHtml(article.content) }}
                 />
               </CardContent>
             </Card>
 
             {/* Need More Help */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <p className="text-gray-600">
-                    If this article didn&apos;t solve your problem, our support team is here to help.
-                  </p>
-                  <div className="flex justify-center space-x-4">
-                    <Link href="/tickets/new">
-                      <Button>Create Support Ticket</Button>
-                    </Link>
-                    <Link href="/knowledge-base">
-                      <Button variant="outline">Browse More Articles</Button>
-                    </Link>
+            {!isAgent && (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center space-y-4">
+                    <p className="text-gray-600">
+                      If this article didn&apos;t solve your problem, our support team is here to help.
+                    </p>
+                    <div className="flex justify-center space-x-4">
+                      <Link href="/tickets/new">
+                        <Button>Create Support Ticket</Button>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Tags */}
             {article.tags && (

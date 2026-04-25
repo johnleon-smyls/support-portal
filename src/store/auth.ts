@@ -31,7 +31,7 @@ async function fetchHelpdeskRoles(): Promise<{
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       isLoading: false,
@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthStore>()(
       // === SESSION VALIDATION (FR-02: Verify active session on page reload) ===
       checkSession: async () => {
         // Get the current persisted user before making API calls
-        const currentUser = useAuthStore.getState().user;
+        const currentUser = get().user;
 
         set({ isLoading: true });
 

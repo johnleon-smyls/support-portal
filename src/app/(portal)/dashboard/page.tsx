@@ -264,14 +264,16 @@ function AgentDashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Tickets</h1>
-          <p className="text-sm text-muted-foreground mt-1">{total} total tickets</p>
-        </div>
+    <div className="flex-1 flex flex-col min-h-0">
+      {/* Header Bar */}
+      <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
+        <h1 className="text-xl font-medium text-foreground">
+          Tickets
+        </h1>
       </div>
 
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-0 p-6">
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
@@ -417,6 +419,7 @@ function AgentDashboard() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
