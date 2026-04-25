@@ -23,7 +23,7 @@ import { useAuth } from '@/lib/auth';
 import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import type { HDTicket } from '@/types/frappe';
 
-type StatusFilter = 'All' | 'Open' | 'Closed';
+type StatusFilter = 'All' | 'Open' | 'Replied' | 'Resolved' | 'Closed';
 const PAGE_SIZE = 20;
 
 // ─── Customer Dashboard ───────────────────────────────────────────────────────
@@ -37,8 +37,7 @@ function CustomerDashboard() {
   const filtered = useMemo(() => {
     return tickets
       .filter((t) => {
-        if (statusFilter === 'Open' && t.status !== 'Open' && t.status !== 'Replied') return false;
-        if (statusFilter === 'Closed' && t.status !== 'Closed' && t.status !== 'Resolved') return false;
+        if (statusFilter !== 'All' && t.status !== statusFilter) return false;
         if (searchQuery) {
           const lower = searchQuery.toLowerCase();
           return (
@@ -88,6 +87,8 @@ function CustomerDashboard() {
             <SelectContent>
               <SelectItem value="All">All Status</SelectItem>
               <SelectItem value="Open">Open</SelectItem>
+              <SelectItem value="Replied">Replied</SelectItem>
+              <SelectItem value="Resolved">Resolved</SelectItem>
               <SelectItem value="Closed">Closed</SelectItem>
             </SelectContent>
           </Select>
@@ -137,9 +138,7 @@ function CustomerDashboard() {
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <StatusBadge
-                        status={ticket.status === 'Replied' ? 'Open' : ticket.status === 'Resolved' ? 'Closed' : ticket.status}
-                      />
+                      <StatusBadge status={ticket.status} />
                     </div>
                     <span className="col-span-2 text-xs text-muted-foreground">
                       {ticket.modified ? formatDate(ticket.modified) : 'N/A'}
