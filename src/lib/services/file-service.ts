@@ -36,8 +36,8 @@ export async function uploadFile(
   if (options.doctype) formData.append('doctype', options.doctype);
   if (options.docname) formData.append('docname', options.docname);
 
-  // Don't set Content-Type manually — axios sets it with the correct boundary for FormData
-  const response = await axios.post('/api/frappe/method/upload_file', formData, {
+  // Use our custom upload endpoint (Website Users can't use Frappe's upload_file)
+  const response = await axios.post('/api/frappe/method/support_desk.api.upload.upload_recording', formData, {
     withCredentials: true,
     onUploadProgress: (event) => {
       if (options.onProgress && event.total) {
