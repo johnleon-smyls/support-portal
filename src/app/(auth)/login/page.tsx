@@ -42,9 +42,9 @@ export default function LoginPage() {
             <Image
               src="/smyls-support-logo.png"
               alt="SMYLS Support"
-              width={280}
-              height={60}
-              className="auth-form__logo h-auto"
+              width={200}
+              height={44}
+              className="h-[2em] w-auto"
               priority
             />
           </div>
