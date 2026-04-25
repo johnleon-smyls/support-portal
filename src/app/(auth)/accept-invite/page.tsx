@@ -14,7 +14,7 @@ import { apiClient } from '@/lib/api';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
 import { BRAND_PRIMARY, BRAND_GRADIENT, FONT_FAMILY } from '@/lib/theme';
 import { validatePassword } from '@/lib/validation';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 function AcceptInviteContent() {
@@ -156,7 +156,7 @@ function AcceptInviteContent() {
               </p>
               <div className="pt-4">
                 <Link href="/login">
-                  <GradientButton
+                  <Button
                     className="w-full h-12 rounded-xl font-semibold"
                     style={{
                       fontSize: '12px',
@@ -164,7 +164,7 @@ function AcceptInviteContent() {
                     }}
                   >
                     Go to Sign In
-                  </GradientButton>
+                  </Button>
                 </Link>
               </div>
             </div>
@@ -342,7 +342,7 @@ function AcceptInviteContent() {
               </div>
 
               {/* Activate Account Button */}
-              <GradientButton
+              <Button
                 type="submit"
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{
@@ -359,7 +359,7 @@ function AcceptInviteContent() {
                 ) : (
                   'Activate Account'
                 )}
-              </GradientButton>
+              </Button>
             </form>
 
             <div className="mt-6 text-center">

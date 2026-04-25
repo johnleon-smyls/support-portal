@@ -5,6 +5,7 @@
 import { useMemo, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, BookOpen, Calendar, ThumbsUp } from 'lucide-react';
@@ -13,8 +14,6 @@ import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { GradientButton } from '@/components/ui/gradient-button';
-import { GradientBadge } from '@/components/ui/gradient-badge';
 import { BRAND_GRADIENT, BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
 import { truncateText, formatDate } from '@/lib/format';
 import { HDArticle } from '@/types/frappe';
@@ -190,9 +189,9 @@ export default function KnowledgeBasePage() {
                       </div>
                     </div>
 
-                    <GradientBadge active className="w-fit mt-2">
+                    <Badge className="w-fit mt-2">
                       {getCategoryName(article.category)}
-                    </GradientBadge>
+                    </Badge>
                   </CardHeader>
 
                   <CardContent>
@@ -231,7 +230,7 @@ export default function KnowledgeBasePage() {
               </h3>
               <div className="flex flex-col items-center gap-2">
                 <Link href="/tickets/new">
-                  <GradientButton>Create a ticket</GradientButton>
+                  <Button>Create a ticket</Button>
                 </Link>
                 <span className="text-sm text-gray-600">
                   Contact us:{' '}

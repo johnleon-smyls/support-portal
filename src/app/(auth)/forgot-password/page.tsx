@@ -9,7 +9,7 @@ import { Loader2, CheckCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
 import { BRAND_PRIMARY, BRAND_GRADIENT, FONT_FAMILY } from '@/lib/theme';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { Button } from '@/components/ui/button';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
                 If an account exists for <strong>{email}</strong>, we&apos;ve sent a link to reset your password.
               </p>
               <Link href="/login">
-                <GradientButton
+                <Button
                   className="w-full h-12 rounded-xl font-semibold mt-4"
                   style={{
                     fontSize: '12px',
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
                   }}
                 >
                   Back to Login
-                </GradientButton>
+                </Button>
               </Link>
             </div>
           </CardContent>
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              <GradientButton
+              <Button
                 type="submit"
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{
@@ -152,7 +152,7 @@ export default function ForgotPasswordPage() {
                 ) : (
                   'Send Reset Link'
                 )}
-              </GradientButton>
+              </Button>
             </form>
 
             <div className="mt-6 text-center">

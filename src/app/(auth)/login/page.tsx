@@ -12,7 +12,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
 import { BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -126,7 +126,7 @@ export default function LoginPage() {
               </div>
 
               {/* Login Button */}
-              <GradientButton
+              <Button
                 type="submit"
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{
@@ -143,7 +143,7 @@ export default function LoginPage() {
                 ) : (
                   'Login'
                 )}
-              </GradientButton>
+              </Button>
             </form>
 
             {/* Signup hidden — users are onboarded via invite only */}

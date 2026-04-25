@@ -24,7 +24,6 @@ import { useAuth } from '@/lib/auth';
 import { useTicket, useTicketReplies, useAddReply } from '@/hooks/use-tickets';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { GradientButton } from '@/components/ui/gradient-button';
 import { BRAND_GRADIENT, BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
 import { stripHtml, transformFrappeUrls, formatDate } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
@@ -320,7 +319,7 @@ export default function TicketDetailsPage() {
                             </p>
                           </div>
                           <div className="flex justify-end">
-                            <GradientButton
+                            <Button
                               type="submit"
                               disabled={isSubmittingReply || !stripHtml(newReply).trim()}
                               style={{ fontFamily: FONT_FAMILY }}
@@ -336,7 +335,7 @@ export default function TicketDetailsPage() {
                                   Send Reply
                                 </>
                               )}
-                            </GradientButton>
+                            </Button>
                           </div>
                         </div>
                       </form>

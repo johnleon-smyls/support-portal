@@ -14,7 +14,7 @@ import { SignUpData } from '@/types/frappe';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
 import { BRAND_PRIMARY, BRAND_GRADIENT, FONT_FAMILY } from '@/lib/theme';
 import { validatePassword } from '@/lib/validation';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { Button } from '@/components/ui/button';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -242,7 +242,7 @@ export default function SignUpPage() {
               </div>
 
               {/* Create Account Button */}
-              <GradientButton
+              <Button
                 type="submit"
                 className="w-full h-12 rounded-xl font-semibold"
                 style={{
@@ -259,7 +259,7 @@ export default function SignUpPage() {
                 ) : (
                   'Create Account'
                 )}
-              </GradientButton>
+              </Button>
             </form>
 
             <div className="mt-6 text-center">

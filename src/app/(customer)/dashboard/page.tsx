@@ -9,8 +9,8 @@ import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { GradientButton } from '@/components/ui/gradient-button';
-import { GradientBadge } from '@/components/ui/gradient-badge';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { FONT_FAMILY } from '@/lib/theme';
 import { stripHtml, formatDate } from '@/lib/format';
 import type { HDTicket } from '@/types/frappe';
@@ -83,10 +83,10 @@ export default function DashboardPage() {
             Tickets
           </h1>
           <Link href="/tickets/new">
-            <GradientButton className="h-8 px-2 rounded-lg cursor-pointer" style={{ fontFamily: FONT_FAMILY }}>
+            <Button className="h-8 px-2 rounded-lg cursor-pointer" style={{ fontFamily: FONT_FAMILY }}>
               <Plus className="h-2.5 w-2.5 mr-2" />
               <span className="text-lg font-medium">Create</span>
-            </GradientButton>
+            </Button>
           </Link>
         </div>
 
@@ -109,15 +109,15 @@ export default function DashboardPage() {
           {/* Status Filter */}
           <div className="mb-6 flex-shrink-0 flex space-x-2">
             {STATUS_FILTERS.map((filter) => (
-              <GradientBadge
+              <Badge
                 key={filter}
-                active={statusFilter === filter}
+                variant={statusFilter === filter ? 'default' : 'outline'}
                 className={`h-8 px-3 text-sm cursor-pointer ${statusFilter === filter ? 'cursor-default' : ''}`}
                 onClick={() => setStatusFilter(filter)}
                 style={{ fontFamily: FONT_FAMILY }}
               >
                 {filter}
-              </GradientBadge>
+              </Badge>
             ))}
           </div>
 
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                   title="No tickets found"
                   action={
                     <Link href="/tickets/new">
-                      <GradientButton style={{ fontFamily: FONT_FAMILY }}>Create a ticket</GradientButton>
+                      <Button style={{ fontFamily: FONT_FAMILY }}>Create a ticket</Button>
                     </Link>
                   }
                 />
@@ -188,9 +188,9 @@ export default function DashboardPage() {
                           </p>
                         </div>
                         <div className="col-span-2 flex items-center">
-                          <GradientBadge active={ticket.status === 'Open'} className="text-xs">
+                          <Badge variant={ticket.status === 'Open' ? 'default' : 'outline'} className="text-xs">
                             {ticket.status}
-                          </GradientBadge>
+                          </Badge>
                         </div>
                         <div className="col-span-2 flex items-center">
                           <span className="text-xs" style={{ color: '#6B7280', fontFamily: FONT_FAMILY }}>

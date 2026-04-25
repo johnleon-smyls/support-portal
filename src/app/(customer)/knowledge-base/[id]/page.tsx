@@ -11,7 +11,6 @@ import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { useArticle, useCategories } from '@/hooks/use-articles';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { GradientButton } from '@/components/ui/gradient-button';
 import { BRAND_PRIMARY, FONT_FAMILY } from '@/lib/theme';
 import { formatDate } from '@/lib/format';
 
@@ -125,7 +124,7 @@ export default function ArticleDetailsPage() {
                   </p>
                   <div className="flex justify-center space-x-4">
                     <Link href="/tickets/new">
-                      <GradientButton>Create Support Ticket</GradientButton>
+                      <Button>Create Support Ticket</Button>
                     </Link>
                     <Link href="/knowledge-base">
                       <Button variant="outline">Browse More Articles</Button>

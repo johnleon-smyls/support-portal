@@ -27,7 +27,6 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Loader2, Plus } from 'lucide-react';
 import { useCreateTicket } from '@/hooks/use-tickets';
-import { GradientButton } from '@/components/ui/gradient-button';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
@@ -188,7 +187,7 @@ export default function NewTicketPage() {
                   </Button>
                 </Link>
 
-                <GradientButton
+                <Button
                   type="submit"
                   disabled={createTicket.isPending}
                   className="cursor-pointer"
@@ -204,7 +203,7 @@ export default function NewTicketPage() {
                       Create
                     </>
                   )}
-                </GradientButton>
+                </Button>
               </div>
             </form>
           </CardContent>
