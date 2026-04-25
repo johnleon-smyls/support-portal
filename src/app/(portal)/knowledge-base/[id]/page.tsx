@@ -71,19 +71,17 @@ export default function ArticleDetailsPage() {
                     {article.title}
                   </CardTitle>
 
-                  {/* Meta — category inline with author and date */}
+                  {/* Meta — category, author, date */}
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    {article.category && (
+                      <Badge variant="outline" className="text-xs">{categoryName}</Badge>
+                    )}
+
+                    <span className="text-zinc-300">·</span>
                     <div className="flex items-center space-x-1">
                       <User className="h-4 w-4" />
                       <span>By {article.author || article.owner || 'Unknown'}</span>
                     </div>
-
-                    {article.category && (
-                      <>
-                        <span className="text-zinc-300">·</span>
-                        <Badge variant="outline" className="text-xs">{categoryName}</Badge>
-                      </>
-                    )}
 
                     <span className="text-zinc-300">·</span>
                     <div className="flex items-center space-x-1">
@@ -103,7 +101,7 @@ export default function ArticleDetailsPage() {
 
             {/* Article Content */}
             <Card className="mb-6">
-              <CardContent className="pt-6">
+              <CardContent>
                 <div
                   className="prose max-w-none prose-zinc prose-headings:text-foreground prose-a:text-primary"
                   dangerouslySetInnerHTML={{ __html: safeHtml(article.content) }}
