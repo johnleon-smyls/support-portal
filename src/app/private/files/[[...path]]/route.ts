@@ -26,7 +26,7 @@ export async function GET(
 
     const frappeFileUrl = `${FRAPPE_BASE_URL}/private/files/${filePath}`;
 
-    // Forward the user's own session cookie — let Frappe enforce its own permissions
+    // Forward the user's own session cookie
     const response = await fetch(frappeFileUrl, {
       headers: { Cookie: cookie },
     });

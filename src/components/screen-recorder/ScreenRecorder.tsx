@@ -55,7 +55,7 @@ export function ScreenRecorder({ onRecordingReady, doctype, docname, disabled }:
         filename,
         doctype,
         docname,
-        isPrivate: true,
+        isPrivate: false,
         onProgress: setUploadProgress,
       });
 
