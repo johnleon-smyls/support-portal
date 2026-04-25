@@ -82,7 +82,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Support Ticket</DialogTitle>
           <DialogDescription>
@@ -109,6 +109,9 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Support">Support</SelectItem>
+                    <SelectItem value="Bug">Bug</SelectItem>
+                    <SelectItem value="Question">Question</SelectItem>
+                    <SelectItem value="Feature Request">Feature Request</SelectItem>
                   </SelectContent>
                 </Select>
               )}

@@ -119,6 +119,9 @@ export default function NewTicketPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Support">Support</SelectItem>
+                        <SelectItem value="Bug">Bug</SelectItem>
+                        <SelectItem value="Question">Question</SelectItem>
+                        <SelectItem value="Feature Request">Feature Request</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
