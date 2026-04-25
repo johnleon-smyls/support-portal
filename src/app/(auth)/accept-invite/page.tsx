@@ -4,6 +4,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -12,18 +13,18 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
-import { BRAND_PRIMARY, BRAND_GRADIENT, FONT_FAMILY } from '@/lib/theme';
-import { validatePassword } from '@/lib/validation';
+import { BRAND_GRADIENT } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
+interface AcceptInviteForm {
+  firstName: string;
+  lastName: string;
+  password: string;
+  confirmPassword: string;
+}
+
 function AcceptInviteContent() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    password: '',
-    confirmPassword: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +37,15 @@ function AcceptInviteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const key = searchParams.get('key');
+
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<AcceptInviteForm>({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      password: '',
+      confirmPassword: ''
+    }
+  });
 
   // Validate token on mount
   useEffect(() => {
@@ -53,7 +63,7 @@ function AcceptInviteContent() {
           setUserEmail(response.message.email || null);
           // Pre-fill first name if available
           if (response.message.first_name) {
-            setFormData(prev => ({ ...prev, firstName: response.message.first_name || '' }));
+            setValue('firstName', response.message.first_name);
           }
         } else {
           setTokenError(('error' in response.message ? response.message.error : undefined) || 'Invalid or expired token');
@@ -67,28 +77,10 @@ function AcceptInviteContent() {
     };
 
     validateToken();
-  }, [key]);
+  }, [key, setValue]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: AcceptInviteForm) => {
     setError(null);
-
-    if (!formData.firstName.trim()) {
-      setError('First name is required');
-      return;
-    }
-
-    const passwordError = validatePassword(formData.password, formData.confirmPassword);
-    if (passwordError) {
-      setError(passwordError);
-      return;
-    }
 
     if (!key) {
       setError('Invalid invitation token');
@@ -100,9 +92,9 @@ function AcceptInviteContent() {
     try {
       const response = await apiClient.acceptInvite({
         key,
-        password: formData.password,
-        first_name: formData.firstName.trim(),
-        last_name: formData.lastName.trim() || undefined
+        password: data.password,
+        first_name: data.firstName.trim(),
+        last_name: data.lastName.trim() || undefined
       });
 
       if (response.message.success) {
@@ -126,8 +118,8 @@ function AcceptInviteContent() {
   // Loading state while validating token
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
-        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
+        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
             <div className="text-center space-y-4">
               <LoadingSpinner message="Validating your invitation..." />
@@ -141,27 +133,23 @@ function AcceptInviteContent() {
   // Token error state
   if (tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
-        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
+        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto bg-red-100">
                 <AlertCircle className="w-8 h-8 text-red-500" />
               </div>
-              <h3 className="text-lg font-semibold" style={{color: '#000', fontFamily: FONT_FAMILY}}>
+              <h3 className="text-lg font-semibold text-foreground">
                 Invalid Invitation
               </h3>
-              <p style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+              <p className="text-muted-foreground">
                 {tokenError}
               </p>
               <div className="pt-4">
                 <Link href="/login">
                   <Button
-                    className="w-full h-12 rounded-xl font-semibold"
-                    style={{
-                      fontSize: '12px',
-                      fontFamily: FONT_FAMILY
-                    }}
+                    className="w-full h-12 rounded-xl font-semibold text-xs"
                   >
                     Go to Sign In
                   </Button>
@@ -177,17 +165,17 @@ function AcceptInviteContent() {
   // Success state
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
-        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
+        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{background: BRAND_GRADIENT}}>
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold" style={{color: '#000', fontFamily: FONT_FAMILY}}>
+              <h3 className="text-lg font-semibold text-foreground">
                 Account Activated!
               </h3>
-              <p style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+              <p className="text-muted-foreground">
                 Redirecting you to sign in...
               </p>
             </div>
@@ -199,27 +187,27 @@ function AcceptInviteContent() {
 
   // Main form
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
       <div className="w-full max-w-md">
         {/* Form Header with SMYLS Logo and Title */}
         <div className="flex flex-col items-center gap-3 mb-6">
           <SmylsLogo size={64} />
-          <h1 className="text-2xl font-bold text-center" style={{fontFamily: 'Helvetica Neue, -apple-system, Roboto, Helvetica, sans-serif'}}>
-            <span style={{color: 'rgba(0,0,0,0.45)'}}>Welcome to</span>
-            <span style={{color: 'rgba(0,0,0,1)'}}> SMYLS</span>
-            <span style={{color: BRAND_PRIMARY}}>.</span>
+          <h1 className="text-2xl font-bold text-center">
+            <span className="text-foreground/45">Welcome to</span>
+            <span className="text-foreground"> SMYLS</span>
+            <span className="text-primary">.</span>
           </h1>
           {userEmail && (
-            <p className="text-sm" style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+            <p className="text-sm text-muted-foreground">
               Setting up account for <strong>{userEmail}</strong>
             </p>
           )}
         </div>
 
         {/* Form Box */}
-        <Card className="bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+        <Card className="bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -228,127 +216,94 @@ function AcceptInviteContent() {
 
               <div className="space-y-4">
                 {/* First Name Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      placeholder="First Name"
-                      required
-                      disabled={isLoading}
-                      className="h-12 px-4 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
-                    />
-                  </div>
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="First Name"
+                    disabled={isLoading}
+                    className="h-12 px-4 rounded-xl border-2 border-zinc-300 text-sm"
+                    aria-invalid={!!errors.firstName}
+                    {...register('firstName', { required: 'First name is required' })}
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-destructive mt-1">{errors.firstName.message}</p>
+                  )}
                 </div>
 
                 {/* Last Name Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      placeholder="Last Name (optional)"
-                      disabled={isLoading}
-                      className="h-12 px-4 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
-                    />
-                  </div>
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Last Name (optional)"
+                    disabled={isLoading}
+                    className="h-12 px-4 rounded-xl border-2 border-zinc-300 text-sm"
+                    aria-invalid={!!errors.lastName}
+                    {...register('lastName')}
+                  />
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-2">
+                <div>
                   <div className="relative">
                     <Input
-                      id="password"
-                      name="password"
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleInputChange}
                       placeholder="Create Password (min. 8 characters)"
-                      required
                       disabled={isLoading}
-                      minLength={8}
-                      className="h-12 px-4 pr-12 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
+                      className="h-12 px-4 pr-12 rounded-xl border-2 border-zinc-300 text-sm"
+                      aria-invalid={!!errors.password}
+                      {...register('password', {
+                        required: 'Password is required',
+                        minLength: { value: 8, message: 'Password must be at least 8 characters' }
+                      })}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                       disabled={isLoading}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                  )}
                 </div>
 
                 {/* Confirm Password Field */}
-                <div className="space-y-2">
+                <div>
                   <div className="relative">
                     <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
                       placeholder="Confirm Password"
-                      required
                       disabled={isLoading}
-                      minLength={8}
-                      className="h-12 px-4 pr-12 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
+                      className="h-12 px-4 pr-12 rounded-xl border-2 border-zinc-300 text-sm"
+                      aria-invalid={!!errors.confirmPassword}
+                      {...register('confirmPassword', {
+                        required: 'Please confirm your password',
+                        validate: (value) =>
+                          value === watch('password') || 'Passwords do not match'
+                      })}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                       disabled={isLoading}
                     >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive mt-1">{errors.confirmPassword.message}</p>
+                  )}
                 </div>
               </div>
 
               {/* Activate Account Button */}
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl font-semibold"
-                style={{
-                  fontSize: '12px',
-                  fontFamily: FONT_FAMILY
-                }}
+                className="w-full h-12 rounded-xl font-semibold text-xs"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -363,12 +318,11 @@ function AcceptInviteContent() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm" style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+              <p className="text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link
                   href="/login"
-                  className="font-medium hover:underline"
-                  style={{color: BRAND_PRIMARY}}
+                  className="font-medium text-link hover:underline"
                 >
                   Sign in
                 </Link>
@@ -384,7 +338,7 @@ function AcceptInviteContent() {
 export default function AcceptInvitePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
         <LoadingSpinner message="Loading..." />
       </div>
     }>

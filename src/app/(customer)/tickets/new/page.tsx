@@ -1,9 +1,7 @@
-// === TICKET CREATION (FR-04: Submit new support ticket with subject and description) ===
-// Creates HD Ticket via Frappe API. Backend set_customer() auto-links the HD Customer.
-
 'use client';
 
 import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -30,48 +28,53 @@ import { useCreateTicket } from '@/hooks/use-tickets';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
+interface TicketForm {
+  subject: string;
+  description: string;
+  ticketType: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+}
+
 export default function NewTicketPage() {
   const { user } = useAuth();
   const router = useRouter();
   const createTicket = useCreateTicket();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [subject, setSubject] = useState('');
-  const [description, setDescription] = useState('');
-  const [ticketType, setTicketType] = useState('Support');
-  const [priority, setPriority] = useState<'Low' | 'Medium' | 'High' | 'Urgent'>('Medium');
-  const [error, setError] = useState<string | null>(null);
+  const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<TicketForm>({
+    defaultValues: {
+      subject: '',
+      description: '',
+      ticketType: 'Support',
+      priority: 'Medium',
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!subject.trim() || !stripHtml(description).trim()) {
-      setError('Subject and description are required');
+  const onSubmit = async (data: TicketForm) => {
+    if (!stripHtml(data.description).trim()) {
+      setSubmitError('Description is required');
       return;
     }
 
-    setError(null);
+    setSubmitError(null);
 
     try {
       await createTicket.mutateAsync({
-        subject,
-        description,
-        ticket_type: ticketType || 'Support',
-        priority,
+        subject: data.subject,
+        description: data.description,
+        ticket_type: data.ticketType || 'Support',
+        priority: data.priority,
         raised_by: user?.email || '',
       });
-
       router.push('/dashboard');
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to create ticket. Please try again.';
-      setError(message);
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create ticket.');
     }
   };
 
   return (
     <>
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-border">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <Link href="/dashboard">
@@ -93,105 +96,97 @@ export default function NewTicketPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {submitError && (
                 <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription>{submitError}</AlertDescription>
                 </Alert>
               )}
 
-              {/* Ticket Type */}
               <div className="space-y-2">
                 <Label htmlFor="ticketType">Ticket Type</Label>
-                <Select
-                  value={ticketType}
-                  onValueChange={setTicketType}
-                  disabled={createTicket.isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Support">Support</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="ticketType"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange} disabled={createTicket.isPending}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Support">Support</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
-              {/* Priority */}
               <div className="space-y-2">
                 <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={priority}
-                  onValueChange={(v) => setPriority(v as 'Low' | 'Medium' | 'High' | 'Urgent')}
-                  disabled={createTicket.isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                    <SelectItem value="Urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="priority"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange} disabled={createTicket.isPending}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
 
-              {/* Subject */}
               <div className="space-y-2">
                 <Label htmlFor="subject">
-                  Subject <span className="text-red-500">*</span>
+                  Subject <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="subject"
-                  value={subject}
-                  onChange={(e) => {
-                    setSubject(e.target.value);
-                    if (error) setError(null);
-                  }}
                   placeholder="Brief description of your issue"
-                  required
                   disabled={createTicket.isPending}
+                  aria-invalid={!!errors.subject}
+                  {...register('subject', { required: 'Subject is required' })}
                 />
+                {errors.subject && (
+                  <p className="text-sm text-destructive">{errors.subject.message}</p>
+                )}
               </div>
 
-              {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description">
-                  Description <span className="text-red-500">*</span>
+                  Description <span className="text-destructive">*</span>
                 </Label>
-                <RichTextEditor
-                  content={description}
-                  onChange={(content) => {
-                    setDescription(content);
-                    if (error) setError(null);
-                  }}
-                  placeholder="Provide detailed information about your issue. Include any error messages, steps to reproduce, and what you expected to happen. You can format text, add images, and more using the toolbar above."
-                  disabled={createTicket.isPending}
+                <Controller
+                  name="description"
+                  control={control}
+                  render={({ field }) => (
+                    <RichTextEditor
+                      content={field.value}
+                      onChange={field.onChange}
+                      placeholder="Provide detailed information about your issue."
+                      disabled={createTicket.isPending}
+                    />
+                  )}
                 />
-                <p className="text-sm text-gray-500">
-                  Use the toolbar to format your text, add images, links, and more
+                <p className="text-sm text-muted-foreground">
+                  Use the toolbar to format text, add images, links, and more
                 </p>
               </div>
 
-              {/* Form Actions */}
               <div className="flex justify-between pt-6">
                 <Link href="/dashboard">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={createTicket.isPending}
-                    className="cursor-pointer"
-                  >
+                  <Button type="button" variant="outline" disabled={createTicket.isPending}>
                     Cancel
                   </Button>
                 </Link>
 
-                <Button
-                  type="submit"
-                  disabled={createTicket.isPending}
-                  className="cursor-pointer"
-                >
+                <Button type="submit" disabled={createTicket.isPending}>
                   {createTicket.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

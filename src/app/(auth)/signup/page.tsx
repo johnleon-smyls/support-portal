@@ -3,6 +3,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -12,17 +13,17 @@ import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SignUpData } from '@/types/frappe';
 import { SmylsLogo } from '@/components/icons/SmylsLogo';
-import { BRAND_PRIMARY, BRAND_GRADIENT, FONT_FAMILY } from '@/lib/theme';
-import { validatePassword } from '@/lib/validation';
+import { BRAND_GRADIENT } from '@/lib/theme';
 import { Button } from '@/components/ui/button';
 
+interface SignUpForm {
+  email: string;
+  fullName: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export default function SignUpPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    fullName: '',
-    password: '',
-    confirmPassword: ''
-  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,19 +31,13 @@ export default function SignUpPage() {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError(null);
-  };
+  const { register, handleSubmit, formState: { errors }, watch } = useForm<SignUpForm>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignUpForm) => {
     setError(null);
 
-    const passwordError = validatePassword(formData.password, formData.confirmPassword);
-    if (passwordError) {
-      setError(passwordError);
+    if (data.password !== data.confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
@@ -50,9 +45,9 @@ export default function SignUpPage() {
 
     try {
       const signUpData: SignUpData = {
-        email: formData.email,
-        full_name: formData.fullName,
-        password: formData.password,
+        email: data.email,
+        full_name: data.fullName,
+        password: data.password,
         user_type: 'Website User'
       };
 
@@ -60,7 +55,7 @@ export default function SignUpPage() {
 
       // Assign Support Portal User role
       try {
-        await apiClient.assignRole(formData.email, 'Support Portal User');
+        await apiClient.assignRole(data.email, 'Support Portal User');
       } catch (roleError) {
         console.warn('Could not assign role automatically:', roleError);
       }
@@ -82,17 +77,17 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
-        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
+        <Card className="w-full max-w-md bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
             <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{background: BRAND_GRADIENT}}>
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg font-semibold" style={{color: '#000', fontFamily: FONT_FAMILY}}>
+              <h3 className="text-lg font-semibold text-foreground">
                 Account Created Successfully!
               </h3>
-              <p style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+              <p className="text-muted-foreground">
                 Redirecting you to sign in...
               </p>
             </div>
@@ -103,22 +98,22 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{background: '#F3F4F6'}}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-zinc-100">
       <div className="w-full max-w-md">
         {/* Form Header with SMYLS Logo and Title */}
         <div className="flex flex-col items-center gap-3 mb-6">
           <SmylsLogo size={64} />
-          <h1 className="text-2xl font-bold text-center" style={{fontFamily: 'Helvetica Neue, -apple-system, Roboto, Helvetica, sans-serif'}}>
-            <span style={{color: 'rgba(0,0,0,0.45)'}}>Join</span>
-            <span style={{color: 'rgba(0,0,0,1)'}}> SMYLS</span>
-            <span style={{color: BRAND_PRIMARY}}>.</span>
+          <h1 className="text-2xl font-bold text-center">
+            <span className="text-foreground/45">Join</span>
+            <span className="text-foreground"> SMYLS</span>
+            <span className="text-primary">.</span>
           </h1>
         </div>
 
         {/* Form Box */}
-        <Card className="bg-white rounded-lg shadow-sm border-0" style={{padding: '40px 20px'}}>
+        <Card className="bg-white rounded-lg shadow-sm border-0 p-10">
           <CardContent className="p-0">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -127,128 +122,103 @@ export default function SignUpPage() {
 
               <div className="space-y-4">
                 {/* Full Name Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      id="fullName"
-                      name="fullName"
-                      type="text"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      placeholder="Full Name"
-                      required
-                      disabled={isLoading}
-                      className="h-12 px-4 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
-                    />
-                  </div>
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Full Name"
+                    disabled={isLoading}
+                    className="h-12 px-4 rounded-xl border-2 border-zinc-300 text-sm"
+                    aria-invalid={!!errors.fullName}
+                    {...register('fullName', { required: 'Full name is required' })}
+                  />
+                  {errors.fullName && (
+                    <p className="text-sm text-destructive mt-1">{errors.fullName.message}</p>
+                  )}
                 </div>
 
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Email Address"
-                      required
-                      disabled={isLoading}
-                      className="h-12 px-4 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
-                    />
-                  </div>
+                <div>
+                  <Input
+                    type="email"
+                    placeholder="Email Address"
+                    disabled={isLoading}
+                    className="h-12 px-4 rounded-xl border-2 border-zinc-300 text-sm"
+                    aria-invalid={!!errors.email}
+                    {...register('email', {
+                      required: 'Email is required',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: 'Invalid email address'
+                      }
+                    })}
+                  />
+                  {errors.email && (
+                    <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
+                  )}
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-2">
+                <div>
                   <div className="relative">
                     <Input
-                      id="password"
-                      name="password"
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleInputChange}
                       placeholder="Create Password (min. 8 characters)"
-                      required
                       disabled={isLoading}
-                      minLength={8}
-                      className="h-12 px-4 pr-12 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
+                      className="h-12 px-4 pr-12 rounded-xl border-2 border-zinc-300 text-sm"
+                      aria-invalid={!!errors.password}
+                      {...register('password', {
+                        required: 'Password is required',
+                        minLength: { value: 8, message: 'Password must be at least 8 characters' }
+                      })}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                       disabled={isLoading}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {errors.password && (
+                    <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
+                  )}
                 </div>
 
                 {/* Confirm Password Field */}
-                <div className="space-y-2">
+                <div>
                   <div className="relative">
                     <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
                       placeholder="Confirm Password"
-                      required
                       disabled={isLoading}
-                      minLength={8}
-                      className="h-12 px-4 pr-12 rounded-xl border-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      style={{
-                        borderColor: '#C5C6CC',
-                        fontSize: '14px',
-                        fontFamily: FONT_FAMILY
-                      }}
+                      className="h-12 px-4 pr-12 rounded-xl border-2 border-zinc-300 text-sm"
+                      aria-invalid={!!errors.confirmPassword}
+                      {...register('confirmPassword', {
+                        required: 'Please confirm your password',
+                        validate: (value) =>
+                          value === watch('password') || 'Passwords do not match'
+                      })}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
                       disabled={isLoading}
                     >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
+                  {errors.confirmPassword && (
+                    <p className="text-sm text-destructive mt-1">{errors.confirmPassword.message}</p>
+                  )}
                 </div>
               </div>
 
               {/* Create Account Button */}
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl font-semibold"
-                style={{
-                  fontSize: '12px',
-                  fontFamily: FONT_FAMILY
-                }}
+                className="w-full h-12 rounded-xl font-semibold text-xs"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -263,12 +233,11 @@ export default function SignUpPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm" style={{color: '#6B7280', fontFamily: FONT_FAMILY}}>
+              <p className="text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link
                   href="/login"
-                  className="font-medium hover:underline"
-                  style={{color: BRAND_PRIMARY}}
+                  className="font-medium text-link hover:underline"
                 >
                   Sign in
                 </Link>
