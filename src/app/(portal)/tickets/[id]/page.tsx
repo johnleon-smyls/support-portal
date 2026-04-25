@@ -79,6 +79,16 @@ export default function TicketDetailPage() {
   // ── Derived data ───────────────────────────────────────────────────────────
   const communications = ticket
     ? ((ticket.communications as Array<Record<string, unknown>>) || [])
+        // Filter out the auto-created communication that duplicates the description
+        .filter((comm, idx, arr) => {
+          if (idx === 0 || (arr.length > 0 && comm.content === ticket.description)) {
+            // Skip if content matches description exactly (auto-created on ticket creation)
+            const descClean = (ticket.description as string || '').trim();
+            const commClean = (comm.content as string || '').trim();
+            if (descClean && commClean === descClean) return false;
+          }
+          return true;
+        })
         .sort((a, b) => new Date((a.communication_date || a.creation) as string).getTime() - new Date((b.communication_date || b.creation) as string).getTime())
     : [];
   const comments = ticket
