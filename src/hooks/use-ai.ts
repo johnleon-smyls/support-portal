@@ -20,6 +20,7 @@ export function useAICategorize() {
     mutationFn: async ({ subject, description }: { subject: string; description: string }) => {
       const response = await apiClient.get('/method/support_desk.api.ai.categorize', {
         params: { subject, description },
+        timeout: 30000,
       });
       return (response as { message: CategorySuggestion }).message;
     },
@@ -31,6 +32,7 @@ export function useAISuggestReply() {
     mutationFn: async (ticketName: string) => {
       const response = await apiClient.get('/method/support_desk.api.ai.suggest_reply', {
         params: { ticket_name: ticketName },
+        timeout: 60000,
       });
       return ((response as { message: ReplySuggestion[] }).message) || [];
     },
@@ -42,6 +44,7 @@ export function useAISummarize() {
     mutationFn: async (ticketName: string) => {
       const response = await apiClient.get('/method/support_desk.api.ai.summarize', {
         params: { ticket_name: ticketName },
+        timeout: 30000,
       });
       return ((response as { message: string }).message) || '';
     },
