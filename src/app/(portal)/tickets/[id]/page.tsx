@@ -40,7 +40,7 @@ import { useAddReply } from '@/hooks/use-tickets';
 import { useAISuggestReply, useAISummarize } from '@/hooks/use-ai';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { stripHtml, sanitizeHtml, formatDate, formatDateTime } from '@/lib/format';
+import { stripHtml, sanitizeHtml, safeHtml, formatDate, formatDateTime } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 
@@ -235,7 +235,7 @@ export default function TicketDetailPage() {
             </CardHeader>
             <CardContent>
               <div
-                className="prose prose-sm max-w-none prose-zinc"
+                className="prose max-w-none prose-zinc prose-headings:font-semibold"
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(ticket.description as string),
                 }}
@@ -292,9 +292,9 @@ export default function TicketDetailPage() {
                         </span>
                       </div>
                       <div
-                        className="prose prose-sm max-w-none prose-zinc"
+                        className="prose max-w-none prose-zinc prose-headings:font-semibold"
                         dangerouslySetInnerHTML={{
-                          __html: sanitizeHtml(comm.content as string),
+                          __html: safeHtml(comm.content as string),
                         }}
                       />
                     </div>
