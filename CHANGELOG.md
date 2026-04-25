@@ -102,6 +102,52 @@ A running record of every phase, what changed, why, and how it fits together. De
 
 ---
 
+### 2.2 Route Structure Redesign
+**Problem:** All pages were flat in `src/app/` with `ProtectedLayout` manually wrapped inside each page component. No separation between customer and admin views.
+
+**Changes:** Split into Next.js route groups:
+- `/(auth)/` — login, signup, forgot-password, accept-invite (no sidebar, no auth guard)
+- `/(customer)/` — dashboard, tickets, knowledge-base (customer sidebar, redirects agents to /admin)
+- `/(admin)/` — admin dashboard placeholder (admin sidebar, redirects non-agents to /dashboard)
+- Root `/` redirects based on `isAgent` flag
+
+Each route group has its own `layout.tsx` with auth guard + sidebar. `ProtectedLayout` removed from all page components — the layout handles it.
+
+**Files moved:** 10 page files reorganized into route groups. 2 new layout files created. 1 admin placeholder page added.
+
+### 2.4 Port Design System
+**Step 1 — Design Tokens:** Replaced default shadcn tokens with SMYLS design system from smyls-portal `design` branch. OKLch color primitives (SMYLS Blue/Green/Orange, status colors, zinc), semantic tokens, fluid typography, spacing, shadows, motion. Inter Variable font replaces Geist.
+
+**Step 2 — UI Components (19 ported):**
+- **New primitives:** avatar, checkbox, switch, table, scroll-area, field, kbd
+- **New overlays:** dialog, dropdown-menu, popover, command (cmdk)
+- **New shared:** status-badge (helpdesk-specific color mappings)
+- **Updated:** button (full CVA), card (composition), badge (pill, 6 variants), input, label, textarea, separator
+- **Removed:** gradient-button, gradient-badge (replaced by primary variants)
+
+**Step 3 — Block Components (4 ported):**
+- table-card, list-card, stats-card, info-card + supporting section-label, stat-row, info-row
+
+**Dependencies added:** `radix-ui` (unified), `cmdk`, `@fontsource-variable/inter`
+**Dependencies removed:** `@radix-ui/react-label`, `@radix-ui/react-select`, `@radix-ui/react-separator`, `@radix-ui/react-slot`
+
+**Strategy:** Port the design infrastructure (tokens + primitives + blocks), adapt business-specific components for helpdesk context. Keep `theme.ts` as backward-compat bridge — new code uses Tailwind classes, old code still works via the constants.
+
+### 2.5 Adopt React Hook Form
+Migrated all 5 forms from manual useState to react-hook-form:
+- Login, signup, forgot-password, accept-invite (auth forms)
+- Create ticket (customer form with Controller for Select/RichTextEditor)
+
+Pattern: `useForm<FormType>()` → `register()` for native inputs, `Controller` for custom components. Built-in validation (required, email pattern, minLength, custom validators). Net -117 lines.
+
+### 2.6 Component & Architecture Audit
+- Removed all `FONT_FAMILY` inline styles (33 occurrences → 0)
+- Replaced hex color inline styles with semantic Tailwind classes
+- Zero FONT_FAMILY references remain in any component
+- Remaining inline styles are only for brand gradients (no Tailwind equivalent)
+
+---
+
 ## Architecture Overview (updated as we go)
 
 ### How the App Works (request flow)

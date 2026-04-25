@@ -64,9 +64,11 @@ User email (e.g. sarah@smylsdental.com)
 | `src/lib/services/types.ts` | **Service Interfaces** — `ITicketService`, `IArticleService` contracts + field lists. The service factory swaps real/demo implementations. |
 | `src/types/frappe.ts` | **Type Definitions** — HDTicket, HDCommunication, HDTicketComment, HDArticle. Source of truth for Frappe doctype shapes. |
 | `src/lib/api.ts` | **FrappeAPIClient** — Axios wrapper with interceptors, error formatting, cookie forwarding. The low-level HTTP layer. |
-| `src/app/dashboard/page.tsx` | **Dashboard** — customer ticket list with search, status filter, sort. Entry point after login. |
-| `src/app/tickets/[id]/page.tsx` | **Ticket Detail** — full conversation thread, reply form. Uses `sent_or_received` to distinguish agent vs customer messages. |
-| `src/app/tickets/new/page.tsx` | **Create Ticket** — form with subject, rich text description (TipTap), type, priority. |
+| `src/app/(customer)/layout.tsx` | **Customer Layout** — auth guard + sidebar wrapper for all customer pages. Redirects agents to `/admin`. |
+| `src/app/(admin)/layout.tsx` | **Admin Layout** — auth guard + admin sidebar for agent pages. Redirects non-agents to `/dashboard`. |
+| `src/app/(customer)/dashboard/page.tsx` | **Dashboard** — customer ticket list with search, status filter, sort. Entry point after login. |
+| `src/app/(customer)/tickets/[id]/page.tsx` | **Ticket Detail** — full conversation thread, reply form. Uses `sent_or_received` to distinguish agent vs customer messages. |
+| `src/app/(customer)/tickets/new/page.tsx` | **Create Ticket** — form with subject, rich text description (TipTap), type, priority. |
 | `src/components/ui/rich-text-editor.tsx` | **Rich Text Editor** — TipTap with formatting toolbar, image upload, link support. Used in ticket creation and replies. |
 
 ## Data Flow Examples
