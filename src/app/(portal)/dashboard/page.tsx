@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { stripHtml, formatDate } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
+import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import type { HDTicket } from '@/types/frappe';
 
 type StatusFilter = 'All' | 'Open' | 'Closed';
@@ -31,6 +32,7 @@ function CustomerDashboard() {
   const { data: tickets = [], isLoading, error } = useTickets();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const filtered = useMemo(() => {
     return tickets
@@ -56,13 +58,13 @@ function CustomerDashboard() {
         <h1 className="text-xl font-medium text-foreground">
           Tickets
         </h1>
-        <Link href="/tickets/new">
-          <Button className="h-8 px-2 rounded-lg cursor-pointer">
-            <Plus className="h-2.5 w-2.5 mr-2" />
-            <span className="text-lg font-medium">Create</span>
-          </Button>
-        </Link>
+        <Button className="h-8 px-3 rounded-lg" onClick={() => setShowCreateDialog(true)}>
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          Create
+        </Button>
       </div>
+
+      <CreateTicketDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0 p-6">
@@ -115,9 +117,7 @@ function CustomerDashboard() {
                 title="No tickets found"
                 description={searchQuery || statusFilter !== 'All' ? 'Try adjusting your filters' : undefined}
                 action={
-                  <Link href="/tickets/new">
-                    <Button>Create a ticket</Button>
-                  </Link>
+                  <Button onClick={() => setShowCreateDialog(true)}>Create a ticket</Button>
                 }
               />
             ) : (

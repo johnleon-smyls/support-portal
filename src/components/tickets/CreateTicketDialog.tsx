@@ -1,0 +1,238 @@
+'use client';
+
+import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Loader2, Plus, Sparkles } from 'lucide-react';
+import { useCreateTicket } from '@/hooks/use-tickets';
+import { stripHtml } from '@/lib/format';
+import { useAuth } from '@/lib/auth';
+import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
+import { KBSuggestions } from '@/components/kb-suggestions/KBSuggestions';
+import { useAICategorize } from '@/hooks/use-ai';
+
+interface TicketForm {
+  subject: string;
+  description: string;
+  ticketType: string;
+}
+
+interface CreateTicketDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogProps) {
+  const { user } = useAuth();
+  const createTicket = useCreateTicket();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<{ url: string; name: string }[]>([]);
+  const [aiSuggestion, setAiSuggestion] = useState<{ ticket_type: string; reasoning: string } | null>(null);
+  const categorizeMutation = useAICategorize();
+
+  const { register, handleSubmit, control, formState: { errors }, setValue, watch, reset } = useForm<TicketForm>({
+    defaultValues: {
+      subject: '',
+      description: '',
+      ticketType: 'Support',
+    },
+  });
+
+  const onSubmit = async (data: TicketForm) => {
+    if (!stripHtml(data.description).trim()) {
+      setSubmitError('Description is required');
+      return;
+    }
+
+    setSubmitError(null);
+
+    try {
+      await createTicket.mutateAsync({
+        subject: data.subject,
+        description: data.description,
+        ticket_type: data.ticketType || 'Support',
+        raised_by: user?.email || '',
+      });
+      reset();
+      setAttachments([]);
+      setAiSuggestion(null);
+      onOpenChange(false);
+    } catch (err: unknown) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create ticket.');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Create New Support Ticket</DialogTitle>
+          <DialogDescription>
+            Describe your issue and we&apos;ll get back to you as soon as possible
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {submitError && (
+            <Alert variant="destructive">
+              <AlertDescription>{submitError}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="ticketType">Ticket Type</Label>
+            <Controller
+              name="ticketType"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange} disabled={createTicket.isPending}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Support">Support</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="subject">
+              Subject <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="subject"
+              placeholder="Brief description of your issue"
+              disabled={createTicket.isPending}
+              aria-invalid={!!errors.subject}
+              {...register('subject', {
+                required: 'Subject is required',
+                onBlur: async (e) => {
+                  const subject = e.target.value;
+                  if (subject.length >= 10 && !aiSuggestion) {
+                    try {
+                      const result = await categorizeMutation.mutateAsync({ subject, description: '' });
+                      if (result?.confidence > 0.5) {
+                        setAiSuggestion(result);
+                      }
+                    } catch { /* AI is optional */ }
+                  }
+                },
+              })}
+            />
+            {errors.subject && (
+              <p className="text-sm text-destructive">{errors.subject.message}</p>
+            )}
+            {aiSuggestion && (
+              <div className="flex items-center gap-2 p-2 rounded-md bg-smyls-blue-50 border border-smyls-blue-100 text-sm">
+                <Sparkles className="h-3.5 w-3.5 text-smyls-blue-500 shrink-0" />
+                <span className="text-muted-foreground">
+                  Suggested: <strong>{aiSuggestion.ticket_type}</strong>
+                  {' — '}{aiSuggestion.reasoning}
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  className="ml-auto shrink-0"
+                  onClick={() => {
+                    setValue('ticketType', aiSuggestion.ticket_type);
+                    setAiSuggestion(null);
+                  }}
+                >
+                  Apply
+                </Button>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:underline shrink-0"
+                  onClick={() => setAiSuggestion(null)}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+          </div>
+
+          <KBSuggestions query={watch('subject')} />
+
+          <div className="space-y-2">
+            <Label htmlFor="description">
+              Description <span className="text-destructive">*</span>
+            </Label>
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <RichTextEditor
+                  content={field.value}
+                  onChange={field.onChange}
+                  placeholder="Provide detailed information about your issue."
+                  disabled={createTicket.isPending}
+                />
+              )}
+            />
+            <p className="text-sm text-muted-foreground">
+              Use the toolbar to format text, add images, links, and more
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Screen Recording</Label>
+            <ScreenRecorder
+              onRecordingReady={(url, name) => setAttachments(prev => [...prev, { url, name }])}
+              disabled={createTicket.isPending}
+            />
+            {attachments.length > 0 && (
+              <div className="space-y-1">
+                {attachments.map((a, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="truncate">{a.name}</span>
+                    <button
+                      type="button"
+                      className="text-destructive hover:underline text-xs"
+                      onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={createTicket.isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createTicket.isPending}>
+              {createTicket.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>
+              ) : (
+                <><Plus className="mr-2 h-4 w-4" />Create Ticket</>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
