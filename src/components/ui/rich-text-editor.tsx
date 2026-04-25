@@ -1,6 +1,6 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import ImageResize from 'tiptap-extension-resize-image';
@@ -14,47 +14,39 @@ import {
   Link2,
   ImageIcon,
 } from 'lucide-react';
-import { Extension } from '@tiptap/core';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-
-const ImageDropHandler = Extension.create({
-  name: 'imageDropHandler',
-  addProseMirrorPlugins() {
-    const editor = this.editor;
-    return [
-      new Plugin({
-        key: new PluginKey('imageDropHandler'),
-        props: {
-          handleDOMEvents: {
-            drop(view, event) {
-              const files = event.dataTransfer?.files;
-              if (!files?.length) return false;
-              const file = files[0];
-              if (!file.type.startsWith('image/')) return false;
-              event.preventDefault();
-              event.stopPropagation();
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                const src = e.target?.result as string;
-                editor.chain().focus().setImage({ src }).run();
-              };
-              reader.readAsDataURL(file);
-              return true;
-            },
-          },
-        },
-      }),
-    ];
-  },
-});
+import { uploadFile } from '@/lib/services/file-service';
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
   placeholder?: string;
   disabled?: boolean;
+}
+
+/**
+ * Upload an image file to Frappe and insert it into the editor.
+ * Shared by button, paste, and drag handlers.
+ */
+async function uploadAndInsertImage(file: File | Blob, editor: Editor) {
+  const frappeUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '';
+  const filename = file instanceof File ? file.name : `image-${Date.now()}.png`;
+
+  try {
+    const result = await uploadFile(file, { filename, isPrivate: false });
+    const src = result.file_url?.startsWith('http')
+      ? result.file_url
+      : `${frappeUrl}${result.file_url}`;
+    editor.chain().focus().setImage({ src }).run();
+  } catch {
+    // Fallback to base64 if upload fails
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      editor.chain().focus().setImage({ src: e.target?.result as string }).run();
+    };
+    reader.readAsDataURL(file);
+  }
 }
 
 export function RichTextEditor({
@@ -64,8 +56,8 @@ export function RichTextEditor({
   disabled = false,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
 
-  // Track active formatting states in React state so buttons re-render
   const [active, setActive] = useState({
     bold: false,
     italic: false,
@@ -93,7 +85,6 @@ export function RichTextEditor({
         },
       }),
       Placeholder.configure({ placeholder }),
-      ImageDropHandler,
     ],
     content,
     editable: !disabled,
@@ -104,27 +95,21 @@ export function RichTextEditor({
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
         for (const item of Array.from(items)) {
           if (item.type.startsWith('image/')) {
             event.preventDefault();
             const file = item.getAsFile();
-            if (!file) return false;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              const src = e.target?.result as string;
-              editor?.chain().focus().setImage({ src }).run();
-            };
-            reader.readAsDataURL(file);
+            if (!file || !editor) return false;
+            uploadAndInsertImage(file, editor);
             return true;
           }
         }
         return false;
       },
       handleClick: (view, pos) => {
-        // If clicking on a link, open edit prompt
         const { state } = view;
         const linkMark = state.doc.resolve(pos).marks().find(m => m.type.name === 'link');
         if (linkMark) {
@@ -135,11 +120,9 @@ export function RichTextEditor({
             if (newUrl === '') {
               editor?.chain().focus().extendMarkRange('link').unsetLink().run();
             } else {
-              // Get the current text of the link
               editor?.chain().focus().extendMarkRange('link').run();
               const { from, to } = editor!.state.selection;
               const currentText = editor!.state.doc.textBetween(from, to);
-              // If display text matches old URL, update both text and href
               if (currentText === oldHref) {
                 editor?.chain()
                   .focus()
@@ -159,7 +142,7 @@ export function RichTextEditor({
     },
   });
 
-  // Listen to ALL editor transactions and sync active states to React
+  // Listen to editor transactions to sync active states
   useEffect(() => {
     if (!editor) return;
     const updateActive = () => {
@@ -173,7 +156,7 @@ export function RichTextEditor({
     return () => { editor.off('transaction', updateActive); };
   }, [editor]);
 
-  // Sync external content changes (e.g. AI suggestions)
+  // Sync external content changes (AI suggestions)
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
       editor.commands.setContent(content);
@@ -181,22 +164,42 @@ export function RichTextEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
+  // Native DOM drop handler — intercepts before TipTap/browser can insert raw <img>
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container || !editor) return;
+
+    const handleDrop = (e: DragEvent) => {
+      const files = e.dataTransfer?.files;
+      if (!files?.length) return;
+      const file = files[0];
+      if (!file.type.startsWith('image/')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      uploadAndInsertImage(file, editor);
+    };
+
+    // Must use capture phase to beat TipTap's handler
+    container.addEventListener('drop', handleDrop, true);
+    container.addEventListener('dragover', (e) => {
+      if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+    });
+
+    return () => {
+      container.removeEventListener('drop', handleDrop, true);
+    };
+  }, [editor]);
+
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (!editor) return;
     const file = event.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      editor.chain().focus().setImage({ src: e.target?.result as string }).run();
-    };
-    reader.readAsDataURL(file);
+    uploadAndInsertImage(file, editor);
     event.target.value = '';
   }, [editor]);
 
   const addLink = useCallback(() => {
     if (!editor) return;
-
-    // Editing existing link
     if (editor.isActive('link')) {
       const prev = editor.getAttributes('link').href;
       const url = window.prompt('Edit URL (clear to remove):', prev);
@@ -208,11 +211,8 @@ export function RichTextEditor({
       }
       return;
     }
-
-    // New link
     const url = window.prompt('Enter URL:');
     if (!url) return;
-
     const { from, to } = editor.state.selection;
     if (from === to) {
       editor.chain().focus()
@@ -232,7 +232,7 @@ export function RichTextEditor({
     );
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden bg-white">
+    <div ref={editorContainerRef} className="border border-border rounded-lg overflow-hidden bg-white">
       <div className="border-b border-border bg-muted/30 p-1.5 flex gap-0.5">
         <button type="button" className={btn(active.bold)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
           <Bold className="h-4 w-4" />
