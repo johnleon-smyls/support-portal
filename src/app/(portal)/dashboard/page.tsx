@@ -108,7 +108,7 @@ function CustomerDashboard() {
         {/* Table */}
         <div className="border border-border rounded-lg flex flex-col min-h-0 flex-1 bg-card">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             <span className="col-span-1">#</span>
             <span className="col-span-7">Subject</span>
             <span className="col-span-2">Status</span>
@@ -136,7 +136,7 @@ function CustomerDashboard() {
             ) : (
               paginated.map((ticket) => (
                 <Link key={ticket.name} href={`/tickets/${ticket.name}`}>
-                  <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer items-center">
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer items-center">
                     <span className="col-span-1 text-sm text-muted-foreground">
                       {ticket.name}
                     </span>
@@ -318,7 +318,7 @@ function AgentDashboard() {
       {/* Table */}
       <div className="border border-border rounded-lg flex flex-col min-h-0 flex-1 bg-card">
         {/* Header */}
-        <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border bg-muted/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           <span className="col-span-1">#</span>
           <span className="col-span-5">Subject</span>
           <span className="col-span-2">Company</span>
@@ -354,7 +354,7 @@ function AgentDashboard() {
               const assignee = getAssignee(ticket);
               return (
                 <Link key={ticket.name} href={`/tickets/${ticket.name}`}>
-                  <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer items-center">
+                  <div className="grid grid-cols-12 gap-2 px-4 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer items-center">
                     <span className="col-span-1 text-sm text-muted-foreground">
                       {ticket.name}
                     </span>
