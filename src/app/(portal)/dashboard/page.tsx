@@ -33,6 +33,7 @@ function CustomerDashboard() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const filtered = useMemo(() => {
     return tickets
@@ -48,8 +49,11 @@ function CustomerDashboard() {
         }
         return true;
       })
-      .sort((a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime());
-  }, [tickets, statusFilter, searchQuery]);
+      .sort((a, b) => {
+        const cmp = new Date(a.modified).getTime() - new Date(b.modified).getTime();
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+  }, [tickets, statusFilter, searchQuery, sortDir]);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -104,7 +108,10 @@ function CustomerDashboard() {
             <span className="col-span-1">#</span>
             <span className="col-span-7">Subject</span>
             <span className="col-span-2">Status</span>
-            <span className="col-span-2">Updated</span>
+            <button className="col-span-2 flex items-center gap-1 uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>
+              Updated
+              <ArrowUpDown className="h-3 w-3" />
+            </button>
           </div>
 
           {/* Body */}
@@ -296,11 +303,11 @@ function AgentDashboard() {
           <span className="col-span-2">Company</span>
           <span className="col-span-1">Status</span>
           <span className="col-span-1">Agent</span>
-          <button className="col-span-1 flex items-center gap-1 uppercase hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
+          <button className="col-span-1 flex items-center gap-1 uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
             Priority
             {sortField === 'priority' && <ArrowUpDown className="h-3 w-3" />}
           </button>
-          <button className="col-span-2 flex items-center gap-1 uppercase hover:text-foreground transition-colors" onClick={() => toggleSort('modified')}>
+          <button className="col-span-2 flex items-center gap-1 uppercase cursor-pointer hover:text-foreground transition-colors" onClick={() => toggleSort('modified')}>
             Updated
             {sortField === 'modified' && <ArrowUpDown className="h-3 w-3" />}
           </button>
