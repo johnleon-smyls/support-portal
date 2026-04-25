@@ -23,13 +23,11 @@ export class TicketService implements ITicketService {
   }
 
   async createTicket(data: CreateTicketData): Promise<HDTicket> {
-    const response = await apiClient.post<{ message: HDTicket }>('/method/helpdesk.helpdesk.doctype.hd_ticket.api.new', {
-      doc: {
-        subject: data.subject,
-        description: data.description,
-        ticket_type: data.ticket_type,
-        raised_by: data.raised_by,
-      },
+    const response = await apiClient.post<{ message: HDTicket }>('/method/support_desk.api.ticket.create_ticket', {
+      subject: data.subject,
+      description: data.description,
+      ticket_type: data.ticket_type || 'Support',
+      raised_by: data.raised_by,
     });
     return response.message;
   }
