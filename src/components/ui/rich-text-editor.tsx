@@ -11,8 +11,6 @@ import {
   Bold,
   Italic,
   Underline as UnderlineIcon,
-  List,
-  ListOrdered,
   Link2,
   ImageIcon,
 } from 'lucide-react';
@@ -39,8 +37,6 @@ export function RichTextEditor({
     bold: false,
     italic: false,
     underline: false,
-    bulletList: false,
-    orderedList: false,
   });
 
   const editor = useEditor({
@@ -57,6 +53,8 @@ export function RichTextEditor({
       ImageResize.configure({ inline: true }),
       Link.configure({
         openOnClick: false,
+        autolink: false,
+        linkOnPaste: true,
         HTMLAttributes: {
           class: 'text-primary underline hover:text-smyls-blue-700',
         },
@@ -83,8 +81,6 @@ export function RichTextEditor({
         bold: editor.isActive('bold'),
         italic: editor.isActive('italic'),
         underline: editor.isActive('underline'),
-        bulletList: editor.isActive('bulletList'),
-        orderedList: editor.isActive('orderedList'),
       });
     };
     editor.on('transaction', updateActive);
@@ -162,15 +158,6 @@ export function RichTextEditor({
         </button>
         <button type="button" className={btn(active.underline)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
           <UnderlineIcon className="h-4 w-4" />
-        </button>
-
-        <div className="w-px bg-border mx-1" />
-
-        <button type="button" className={btn(active.bulletList)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet List">
-          <List className="h-4 w-4" />
-        </button>
-        <button type="button" className={btn(active.orderedList)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered List">
-          <ListOrdered className="h-4 w-4" />
         </button>
 
         <div className="w-px bg-border mx-1" />
