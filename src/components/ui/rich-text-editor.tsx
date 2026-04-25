@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
+import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
@@ -15,8 +16,8 @@ import {
   Link2,
   ImageIcon,
 } from 'lucide-react';
-import { Button } from './button';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps {
   content: string;
@@ -32,7 +33,6 @@ export function RichTextEditor({
   disabled = false,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [, setTick] = useState(0);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -48,6 +48,9 @@ export function RichTextEditor({
         inline: true,
         allowBase64: true,
       }),
+      ImageResize.configure({
+        inline: true,
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -60,11 +63,9 @@ export function RichTextEditor({
     ],
     content,
     editable: !disabled,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-      setTick(t => t + 1);
+    onUpdate: ({ editor: e }) => {
+      onChange(e.getHTML());
     },
-    onSelectionUpdate: () => setTick(t => t + 1),
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
@@ -97,7 +98,6 @@ export function RichTextEditor({
   const addLink = useCallback(() => {
     if (!editor) return;
 
-    // If already on a link, allow editing or removing it
     if (editor.isActive('link')) {
       const previousUrl = editor.getAttributes('link').href;
       const url = window.prompt('Edit URL (clear to remove):', previousUrl);
@@ -112,8 +112,6 @@ export function RichTextEditor({
 
     const rawUrl = window.prompt('Enter URL:', 'https://');
     if (!rawUrl) return;
-
-    // Auto-prepend https:// if no protocol
     const url = rawUrl.match(/^https?:\/\//) ? rawUrl : `https://${rawUrl}`;
 
     const { from, to } = editor.state.selection;
@@ -129,59 +127,43 @@ export function RichTextEditor({
 
   if (!editor) return null;
 
-  const ToolbarButton = ({ onClick, active, title, children, btnDisabled }: {
-    onClick: () => void;
-    active?: boolean;
-    title: string;
-    children: React.ReactNode;
-    btnDisabled?: boolean;
-  }) => (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      onMouseDown={(e) => { e.preventDefault(); }}
-      onClick={() => onClick()}
-      disabled={btnDisabled || disabled}
-      className={`h-8 w-8 p-0 ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
-      title={title}
-    >
-      {children}
-    </Button>
-  );
+  const btnClass = (active: boolean) =>
+    cn('h-8 w-8 p-0 rounded-md inline-flex items-center justify-center transition-colors',
+      active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      disabled && 'opacity-50 pointer-events-none'
+    );
 
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-white">
       <div className="border-b border-border bg-muted/30 p-1.5 flex gap-0.5">
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold">
+        <button type="button" className={btnClass(editor.isActive('bold'))} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
           <Bold className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Italic">
+        </button>
+        <button type="button" className={btnClass(editor.isActive('italic'))} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
           <Italic className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Underline">
+        </button>
+        <button type="button" className={btnClass(editor.isActive('underline'))} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
           <UnderlineIcon className="h-4 w-4" />
-        </ToolbarButton>
+        </button>
 
         <div className="w-px bg-border mx-1" />
 
-        <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Bullet List">
+        <button type="button" className={btnClass(editor.isActive('bulletList'))} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet List">
           <List className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Numbered List">
+        </button>
+        <button type="button" className={btnClass(editor.isActive('orderedList'))} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Numbered List">
           <ListOrdered className="h-4 w-4" />
-        </ToolbarButton>
+        </button>
 
         <div className="w-px bg-border mx-1" />
 
-        <ToolbarButton onClick={addLink} title="Insert Link">
+        <button type="button" className={btnClass(false)} onMouseDown={e => e.preventDefault()} onClick={addLink} title="Insert Link">
           <Link2 className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Insert Image">
+        </button>
+        <button type="button" className={btnClass(false)} onMouseDown={e => e.preventDefault()} onClick={() => fileInputRef.current?.click()} title="Insert Image">
           <ImageIcon className="h-4 w-4" />
-        </ToolbarButton>
+        </button>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-
       </div>
 
       <div className="prose-editor">
