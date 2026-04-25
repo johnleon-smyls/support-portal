@@ -14,8 +14,41 @@ import {
   Link2,
   ImageIcon,
 } from 'lucide-react';
+import { Extension } from '@tiptap/core';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
+
+const ImageDropHandler = Extension.create({
+  name: 'imageDropHandler',
+  addProseMirrorPlugins() {
+    const editor = this.editor;
+    return [
+      new Plugin({
+        key: new PluginKey('imageDropHandler'),
+        props: {
+          handleDOMEvents: {
+            drop(view, event) {
+              const files = event.dataTransfer?.files;
+              if (!files?.length) return false;
+              const file = files[0];
+              if (!file.type.startsWith('image/')) return false;
+              event.preventDefault();
+              event.stopPropagation();
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const src = e.target?.result as string;
+                editor.chain().focus().setImage({ src }).run();
+              };
+              reader.readAsDataURL(file);
+              return true;
+            },
+          },
+        },
+      }),
+    ];
+  },
+});
 
 interface RichTextEditorProps {
   content: string;
@@ -60,6 +93,7 @@ export function RichTextEditor({
         },
       }),
       Placeholder.configure({ placeholder }),
+      ImageDropHandler,
     ],
     content,
     editable: !disabled,
@@ -69,20 +103,6 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
-      },
-      handleDrop: (view, event) => {
-        const files = event.dataTransfer?.files;
-        if (!files?.length) return false;
-        const file = files[0];
-        if (!file.type.startsWith('image/')) return false;
-        event.preventDefault();
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const src = e.target?.result as string;
-          editor?.chain().focus().setImage({ src }).run();
-        };
-        reader.readAsDataURL(file);
-        return true;
       },
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
