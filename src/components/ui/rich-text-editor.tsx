@@ -62,9 +62,9 @@ export function RichTextEditor({
     editable: !disabled,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+      setTick(t => t + 1);
     },
     onSelectionUpdate: () => setTick(t => t + 1),
-    onTransaction: () => setTick(t => t + 1),
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
@@ -140,7 +140,8 @@ export function RichTextEditor({
       type="button"
       variant="ghost"
       size="sm"
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(); }}
+      onMouseDown={(e) => { e.preventDefault(); }}
+      onClick={() => onClick()}
       disabled={btnDisabled || disabled}
       className={`h-8 w-8 p-0 ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
       title={title}
