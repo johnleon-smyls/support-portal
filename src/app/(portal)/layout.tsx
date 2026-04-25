@@ -2,12 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, hasHydrated, logout } = useAuth();
 
   useEffect(() => {
@@ -18,6 +20,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
 
   const handleLogout = async () => {
     await logout();
+    queryClient.clear();
     router.push('/login');
   };
 
