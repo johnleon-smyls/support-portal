@@ -7,6 +7,8 @@ export class TicketService implements ITicketService {
   async getTickets(filters?: Record<string, unknown>): Promise<HDTicket[]> {
     const params: Record<string, string> = {
       fields: JSON.stringify(TICKET_FIELDS),
+      order_by: 'modified desc',
+      limit_page_length: '50',
     };
     if (filters) {
       params.filters = JSON.stringify(filters);

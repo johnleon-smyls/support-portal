@@ -53,8 +53,10 @@ User email (e.g. sarah@smylsdental.com)
 | 6 | **React Query + Zustand, not frappe-react-sdk** | frappe-react-sdk uses SWR and assumes direct Frappe communication. We use React Query (more capable for polling, conditional queries) and route through a proxy. |
 | 7 | **Next.js over Vite** | Standalone Docker deployment needs server-side API proxy, private file proxy, SSR for knowledge base. smyls-portal uses Vite because it's bundled inside a Frappe app (same origin). Different deployment model = different framework. |
 | 8 | **Helpdesk v1.21.3** | Last version supporting Frappe v15 *and* v16. Keeps the door open for same-instance deployment with smyls-ops (currently v15). |
+| 9 | **DOMPurify on all HTML rendering** | Every `dangerouslySetInnerHTML` is sanitized via `safeHtml()` or `sanitizeHtml()`. No raw user HTML touches the DOM. |
+| 10 | **AI features are non-blocking** | Auto-categorization, suggested replies, summarization all fail gracefully. AI unavailability never blocks core functionality. |
 
-## The 10 Most Important Files
+## The Most Important Files
 
 | File | What It Does |
 |------|-------------|
@@ -68,8 +70,13 @@ User email (e.g. sarah@smylsdental.com)
 | `src/app/(admin)/layout.tsx` | **Admin Layout** — auth guard + admin sidebar for agent pages. Redirects non-agents to `/dashboard`. |
 | `src/app/(customer)/dashboard/page.tsx` | **Dashboard** — customer ticket list with search, status filter, sort. Entry point after login. |
 | `src/app/(customer)/tickets/[id]/page.tsx` | **Ticket Detail** — full conversation thread, reply form. Uses `sent_or_received` to distinguish agent vs customer messages. |
-| `src/app/(customer)/tickets/new/page.tsx` | **Create Ticket** — form with subject, rich text description (TipTap), type, priority. |
-| `src/components/ui/rich-text-editor.tsx` | **Rich Text Editor** — TipTap with formatting toolbar, image upload, link support. Used in ticket creation and replies. |
+| `src/app/(customer)/tickets/new/page.tsx` | **Create Ticket** — RHF form with subject, rich text (TipTap), type, priority, screen recording, KB suggestions. |
+| `src/app/(admin)/admin/tickets/page.tsx` | **Admin Ticket List** — all tickets with server-side filtering, pagination, StatusBadge. |
+| `src/app/(admin)/admin/tickets/[id]/page.tsx` | **Admin Ticket Detail** — metadata sidebar, reply/note modes, AI suggest/summarize, status/assignment changes. |
+| `src/lib/services/admin-ticket-service.ts` | **Admin Service** — agent-specific API (list, detail, reply, assign, filter). |
+| `src/components/screen-recorder/ScreenRecorder.tsx` | **Screen Recorder** — browser capture → preview → upload to Frappe. |
+| `src/lib/format.ts` | **Formatters** — `safeHtml()` (sanitize + transform URLs), `stripHtml()`, `formatDate()`. |
+| `src/hooks/use-ai.ts` | **AI Hooks** — categorize, suggest reply, summarize via support_desk backend. |
 
 ## Data Flow Examples
 
