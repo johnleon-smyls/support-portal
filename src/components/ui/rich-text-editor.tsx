@@ -2,6 +2,7 @@
 
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
 import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -48,7 +49,8 @@ export function RichTextEditor({
         horizontalRule: false,
       }),
       Underline,
-      ImageResize.configure({ inline: true, allowBase64: true }),
+      Image.configure({ inline: true, allowBase64: true }),
+      ImageResize,
       Link.configure({
         openOnClick: false,
         autolink: false,
