@@ -206,6 +206,27 @@ Replaces Server Scripts with version-controlled, testable Python modules.
 
 ---
 
+## Phase 5: AI Features
+
+### 5A Auto-categorization + Suggested Replies + Summarization
+
+**Backend** (`support-desk` repo):
+- `support_desk/ai/client.py` — shared Claude client, reads API key from site config
+- `support_desk/ai/categorize.py` — suggests ticket type + priority from subject/description
+- `support_desk/ai/suggest_reply.py` — generates 2-3 reply drafts based on conversation context
+- `support_desk/ai/summarize.py` — bullet-point summary of ticket threads
+- `support_desk/api/ai.py` — whitelisted endpoints (categorize: all users, suggest/summarize: agent-only)
+
+**Frontend** (`support-portal` repo):
+- `src/hooks/use-ai.ts` — React Query mutations for each AI endpoint
+- Admin ticket detail: "AI Suggest" + "Summarize" buttons with clickable suggestion cards
+- Ticket creation: auto-categorization on subject blur, "Apply" to accept suggestion
+- All AI features are non-blocking — failures don't affect core functionality
+
+**Setup:** `pip install anthropic` + `bench set-config anthropic_api_key <key>`
+
+---
+
 ## Architecture Overview (updated as we go)
 
 ### How the App Works (request flow)
