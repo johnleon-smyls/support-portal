@@ -324,6 +324,51 @@
  * Layer 3: Component Styles
  * ────────────────────────────────────────────── */
 
+/* Auth Form — proportionally scaled login/signup/reset forms */
+@layer components {
+  .root-bg {
+    position: relative;
+  }
+  .root-bg::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--color-smyls-blue-50);
+    z-index: -1;
+  }
+
+  .auth-form {
+    font-size: min(
+      clamp(0.875rem, 0.55rem + 0.89vw, 1.125rem),
+      clamp(0.8125rem, 0.15rem + 1.11vh, 1.125rem)
+    );
+    width: min(88%, 24em);
+  }
+  .auth-form__card {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25em;
+  }
+  .auth-form__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .auth-form__logo { height: 3em; width: auto; }
+  .auth-form__title { font-size: 1.25em; font-weight: 600; color: var(--color-foreground); line-height: 1.75; }
+  .auth-form__subtitle { font-size: 0.875em; color: var(--color-muted-foreground); line-height: 1.25; }
+  .auth-form__content { width: 100%; display: flex; flex-direction: column; gap: 1.25em; }
+  .auth-form__fields { display: flex; flex-direction: column; gap: 1em; padding-top: 0.625em; padding-bottom: 0.625em; }
+  .auth-form__input { height: 2.375em !important; padding: 0.5em 0.75em; font-size: 1em; border-radius: 0.5em; }
+  .auth-form__input::placeholder { font-size: 1em; font-weight: 400; }
+  .auth-form__actions { display: flex; flex-direction: column; align-items: center; gap: 0.625em; }
+  .auth-form__button { height: 2.75em; padding: 0 2em; font-size: 1em; border-radius: 0.625em; width: min(100%, 20em); }
+  .auth-form__success { font-size: 0.85em; line-height: 1.5; color: var(--color-status-green-600); background: var(--color-status-green-50); padding: 0.75em 1em; border-radius: 0.5em; }
+  .auth-form__error { font-size: 0.85em; }
+  .auth-form__link { font-size: 0.8em; font-weight: 500; line-height: 1.25; color: var(--color-smyls-blue-700); }
+}
+
 /* TipTap Rich Text Editor */
 .prose-editor .ProseMirror {
   outline: none;
