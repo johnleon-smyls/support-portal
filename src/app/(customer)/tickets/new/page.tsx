@@ -27,6 +27,7 @@ import { ArrowLeft, Loader2, Plus } from 'lucide-react';
 import { useCreateTicket } from '@/hooks/use-tickets';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
+import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 
 interface TicketForm {
   subject: string;
@@ -40,6 +41,7 @@ export default function NewTicketPage() {
   const router = useRouter();
   const createTicket = useCreateTicket();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<{ url: string; name: string }[]>([]);
 
   const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<TicketForm>({
     defaultValues: {
@@ -177,6 +179,31 @@ export default function NewTicketPage() {
                 <p className="text-sm text-muted-foreground">
                   Use the toolbar to format text, add images, links, and more
                 </p>
+              </div>
+
+              {/* Screen Recording */}
+              <div className="space-y-2">
+                <Label>Screen Recording</Label>
+                <ScreenRecorder
+                  onRecordingReady={(url, name) => setAttachments(prev => [...prev, { url, name }])}
+                  disabled={createTicket.isPending}
+                />
+                {attachments.length > 0 && (
+                  <div className="space-y-1">
+                    {attachments.map((a, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="truncate">{a.name}</span>
+                        <button
+                          type="button"
+                          className="text-destructive hover:underline text-xs"
+                          onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between pt-6">
