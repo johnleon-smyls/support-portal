@@ -320,25 +320,9 @@ class FrappeAPIClient {
 }
 
 // Create and export the API client instance
-// In demo mode (NEXT_PUBLIC_DEMO_MODE=true), uses a mock client with dummy data
-import { DemoAPIClient } from './demo-api';
-import { isDemoMode } from './demo-data';
-
-export const createAPIClient = (): FrappeAPIClient | DemoAPIClient => {
-  if (isDemoMode()) {
-    return new DemoAPIClient();
-  }
-
-  const config: FrappeAuthConfig = {
-    baseUrl: process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '',
-    apiVersion: process.env.NEXT_PUBLIC_FRAPPE_API_VERSION || 'v2',
-  };
-
-  if (!config.baseUrl) {
-    throw new Error('NEXT_PUBLIC_FRAPPE_BASE_URL is required');
-  }
-
-  return new FrappeAPIClient(config);
+const config: FrappeAuthConfig = {
+  baseUrl: process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '',
+  apiVersion: process.env.NEXT_PUBLIC_FRAPPE_API_VERSION || 'v2',
 };
 
-export const apiClient = createAPIClient();
+export const apiClient = new FrappeAPIClient(config);

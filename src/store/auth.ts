@@ -5,7 +5,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthStore, LoginCredentials, FrappeUser } from '@/types/auth';
 import { apiClient } from '@/lib/api';
-import { isDemoMode, DEMO_USER } from '@/lib/demo-data';
 
 // Fetch role info from Helpdesk's get_user endpoint
 async function fetchHelpdeskRoles(): Promise<{
@@ -47,23 +46,6 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, error: null });
 
         try {
-          // Demo mode: skip real API, use demo user directly
-          if (isDemoMode()) {
-            await new Promise((r) => setTimeout(r, 400)); // Simulate network delay
-            const user: FrappeUser = {
-              name: DEMO_USER.name,
-              email: DEMO_USER.email,
-              full_name: DEMO_USER.full_name,
-              first_name: DEMO_USER.first_name,
-              last_name: DEMO_USER.last_name,
-              roles: DEMO_USER.roles,
-              enabled: 1,
-              user_type: DEMO_USER.user_type,
-            };
-            set({ user, isAuthenticated: true, isLoading: false, error: null });
-            return;
-          }
-
           const response = await apiClient.login(credentials.usr, credentials.pwd);
           const authData = response as { full_name?: string; first_name?: string; last_name?: string; message?: { full_name?: string; first_name?: string; last_name?: string } };
 
@@ -155,12 +137,6 @@ export const useAuthStore = create<AuthStore>()(
 
       // === SESSION VALIDATION (FR-02: Verify active session on page reload) ===
       checkSession: async () => {
-        // Demo mode: trust persisted state, no API validation needed
-        if (isDemoMode()) {
-          set({ isLoading: false });
-          return true;
-        }
-
         // Get the current persisted user before making API calls
         const currentUser = useAuthStore.getState().user;
 
