@@ -164,15 +164,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               }}
               disabled={createTicket.isPending}
             />
-            {recordings.length > 0 && (
-              <div className="space-y-1">
-                {recordings.map((a, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <a href={a.url} target="_blank" className="text-primary hover:underline truncate">{a.name}</a>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-border">
