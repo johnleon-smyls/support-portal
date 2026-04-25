@@ -79,7 +79,7 @@ export default function KnowledgeBasePage() {
     <>
       {/* Header Bar */}
       <div className="h-12 flex items-center justify-between px-6 border-b border-border">
-        <h1 className="text-xl font-medium text-foreground">
+        <h1 className="text-lg font-medium text-foreground">
           Knowledge Base
         </h1>
       </div>

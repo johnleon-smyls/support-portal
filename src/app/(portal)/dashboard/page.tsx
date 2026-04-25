@@ -63,7 +63,7 @@ function CustomerDashboard() {
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header Bar */}
       <div className="h-12 flex items-center justify-between px-6 border-b border-border flex-shrink-0">
-        <h1 className="text-xl font-medium text-foreground">
+        <h1 className="text-lg font-medium text-foreground">
           Tickets
         </h1>
         <Button className="h-8 px-3 rounded-lg" onClick={() => setShowCreateDialog(true)}>
@@ -257,7 +257,7 @@ function AgentDashboard() {
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header Bar */}
       <div className="h-12 flex items-center justify-between px-6 border-b border-border flex-shrink-0">
-        <h1 className="text-xl font-medium text-foreground">
+        <h1 className="text-lg font-medium text-foreground">
           Tickets
         </h1>
       </div>
