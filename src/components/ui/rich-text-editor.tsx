@@ -14,8 +14,6 @@ import {
   ListOrdered,
   Link2,
   ImageIcon,
-  Undo,
-  Redo,
 } from 'lucide-react';
 import { Button } from './button';
 import { useCallback, useEffect, useRef } from 'react';
@@ -120,7 +118,7 @@ export function RichTextEditor({
       size="sm"
       onClick={(e) => { e.preventDefault(); e.stopPropagation(); onClick(); }}
       disabled={btnDisabled || disabled}
-      className={`h-8 w-8 p-0 ${active ? 'bg-muted' : ''}`}
+      className={`h-8 w-8 p-0 ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
       title={title}
     >
       {children}
@@ -159,14 +157,6 @@ export function RichTextEditor({
         </ToolbarButton>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
 
-        <div className="w-px bg-border mx-1" />
-
-        <ToolbarButton onClick={() => editor.chain().focus().undo().run()} btnDisabled={!editor.can().undo()} title="Undo">
-          <Undo className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={() => editor.chain().focus().redo().run()} btnDisabled={!editor.can().redo()} title="Redo">
-          <Redo className="h-4 w-4" />
-        </ToolbarButton>
       </div>
 
       <div className="prose-editor">
