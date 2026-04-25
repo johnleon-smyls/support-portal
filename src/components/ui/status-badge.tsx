@@ -18,19 +18,23 @@ const statusStyles = {
   urgent: { bg: 'bg-status-red-50', text: 'text-status-red-500', dot: 'bg-status-red-400' },
 } as const
 
-type Status = keyof typeof statusStyles
+type StatusKey = keyof typeof statusStyles
 
 type StatusBadgeProps = Omit<React.ComponentProps<'span'>, 'children'> & {
-  status: Status
+  /** Status string — case-insensitive (e.g. "Open", "open", "OPEN" all work) */
+  status: string
   /** Override the display label. Defaults to the status name capitalized. */
   label?: string
   /** Show a dot indicator before the label. Default: true */
   dot?: boolean
 }
 
+const fallbackStyle = { bg: 'bg-zinc-100', text: 'text-zinc-500', dot: 'bg-zinc-400' }
+
 function StatusBadge({ status, label, dot = true, className, ...props }: StatusBadgeProps) {
-  const style = statusStyles[status]
-  const displayLabel = label ?? status.charAt(0).toUpperCase() + status.slice(1)
+  const key = status.toLowerCase() as StatusKey
+  const style = statusStyles[key] || fallbackStyle
+  const displayLabel = label ?? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
 
   return (
     <span
@@ -51,4 +55,4 @@ function StatusBadge({ status, label, dot = true, className, ...props }: StatusB
 }
 
 export { StatusBadge, statusStyles }
-export type { Status }
+export type { StatusKey }
