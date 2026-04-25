@@ -52,11 +52,11 @@ export function RichTextEditor({
       Image.configure({ inline: true, allowBase64: true }),
       ImageResize,
       Link.configure({
-        openOnClick: false,
+        openOnClick: 'whenNotEditable',
         autolink: false,
         linkOnPaste: true,
         HTMLAttributes: {
-          class: 'text-primary underline hover:text-smyls-blue-700',
+          class: 'text-primary underline hover:text-smyls-blue-700 cursor-pointer',
         },
       }),
       Placeholder.configure({ placeholder }),
@@ -69,6 +69,25 @@ export function RichTextEditor({
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
+      },
+      handleClick: (view, pos) => {
+        // If clicking on a link, open edit prompt
+        const { state } = view;
+        const linkMark = state.doc.resolve(pos).marks().find(m => m.type.name === 'link');
+        if (linkMark) {
+          const href = linkMark.attrs.href;
+          setTimeout(() => {
+            const newUrl = window.prompt('Edit URL (clear to remove):', href);
+            if (newUrl === null) return;
+            if (newUrl === '') {
+              editor?.chain().focus().extendMarkRange('link').unsetLink().run();
+            } else {
+              editor?.chain().focus().extendMarkRange('link').setLink({ href: newUrl }).run();
+            }
+          }, 0);
+          return true;
+        }
+        return false;
       },
     },
   });
@@ -124,13 +143,11 @@ export function RichTextEditor({
     }
 
     // New link
-    const raw = window.prompt('Enter URL:');
-    if (!raw) return;
-    const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    const url = window.prompt('Enter URL:');
+    if (!url) return;
 
     const { from, to } = editor.state.selection;
     if (from === to) {
-      // No selection — insert URL as both href and display text
       editor.chain().focus()
         .insertContent(`<a href="${url}" target="_blank">${url}</a> `)
         .run();
