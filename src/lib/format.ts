@@ -69,7 +69,7 @@ export function sanitizeHtml(html: string): string {
   const DOMPurify = require('isomorphic-dompurify').default;
   return DOMPurify.sanitize(html, {
     ADD_TAGS: ['iframe'],
-    ADD_ATTR: ['target', 'allowfullscreen', 'frameborder'],
+    ADD_ATTR: ['target', 'allowfullscreen', 'frameborder', 'style', 'class'],
   });
 }
 
