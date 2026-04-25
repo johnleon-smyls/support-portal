@@ -108,7 +108,8 @@ export default function TicketDetailPage() {
     replyMutation.isPending || noteMutation.isPending || customerReplyMutation.isPending;
 
   const handleSendReply = async () => {
-    if (!stripHtml(replyContent).trim()) return;
+    const hasContent = stripHtml(replyContent).trim() || replyContent.includes('<img') || replyContent.includes('<a ');
+    if (!hasContent) return;
 
     if (isAgent) {
       if (replyMode === 'reply') {
@@ -500,7 +501,7 @@ export default function TicketDetailPage() {
                 <div className="flex justify-end">
                   <Button
                     onClick={handleSendReply}
-                    disabled={isSending || !stripHtml(replyContent).trim()}
+                    disabled={isSending || (!stripHtml(replyContent).trim() && !replyContent.includes('<img') && !replyContent.includes('<a '))}
                   >
                     {isSending ? (
                       <>
