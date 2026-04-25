@@ -28,6 +28,7 @@ import { useCreateTicket } from '@/hooks/use-tickets';
 import { stripHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
+import { KBSuggestions } from '@/components/kb-suggestions/KBSuggestions';
 import { useAICategorize } from '@/hooks/use-ai';
 import { Sparkles } from 'lucide-react';
 
@@ -47,7 +48,7 @@ export default function NewTicketPage() {
   const [aiSuggestion, setAiSuggestion] = useState<{ ticket_type: string; priority: string; reasoning: string } | null>(null);
   const categorizeMutation = useAICategorize();
 
-  const { register, handleSubmit, control, formState: { errors }, setValue } = useForm<TicketForm>({
+  const { register, handleSubmit, control, formState: { errors }, setValue, watch } = useForm<TicketForm>({
     defaultValues: {
       subject: '',
       description: '',
@@ -205,6 +206,9 @@ export default function NewTicketPage() {
                   </div>
                 )}
               </div>
+
+              {/* Smart KB Suggestions */}
+              <KBSuggestions query={watch('subject')} />
 
               <div className="space-y-2">
                 <Label htmlFor="description">
