@@ -37,7 +37,8 @@ function CustomerDashboard() {
   const filtered = useMemo(() => {
     return tickets
       .filter((t) => {
-        if (statusFilter !== 'All' && t.status !== statusFilter) return false;
+        if (statusFilter === 'Open' && t.status !== 'Open' && t.status !== 'Replied') return false;
+        if (statusFilter === 'Closed' && t.status !== 'Closed' && t.status !== 'Resolved') return false;
         if (searchQuery) {
           const lower = searchQuery.toLowerCase();
           return (
@@ -136,7 +137,9 @@ function CustomerDashboard() {
                       </p>
                     </div>
                     <div className="col-span-2">
-                      <StatusBadge status={ticket.status} />
+                      <StatusBadge
+                        status={ticket.status === 'Replied' ? 'Open' : ticket.status === 'Resolved' ? 'Closed' : ticket.status}
+                      />
                     </div>
                     <span className="col-span-2 text-xs text-muted-foreground">
                       {ticket.modified ? formatDate(ticket.modified) : 'N/A'}
