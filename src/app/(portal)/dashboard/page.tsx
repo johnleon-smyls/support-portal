@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Ticket, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Ticket, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useTickets } from '@/hooks/use-tickets';
 import { useAdminTickets, useCustomers } from '@/hooks/use-admin-tickets';
@@ -156,12 +156,28 @@ function CustomerDashboard() {
 
 // ─── Agent Dashboard ──────────────────────────────────────────────────────────
 
+type AgentSortField = 'modified' | 'priority';
+type SortDir = 'asc' | 'desc';
+
+const PRIORITY_ORDER: Record<string, number> = { Urgent: 4, High: 3, Medium: 2, Low: 1 };
+
 function AgentDashboard() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [customerFilter, setCustomerFilter] = useState('All');
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<AgentSortField>('modified');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const toggleSort = (field: AgentSortField) => {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('desc');
+    }
+  };
 
   const { data: ticketData, isLoading, error } = useAdminTickets({
     status: statusFilter,
@@ -177,13 +193,27 @@ function AgentDashboard() {
   const total = ticketData?.total || 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  // Client-side search filter on top of server filters
-  const filtered = searchQuery
-    ? tickets.filter((t: HDTicket) =>
-        t.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.raised_by?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : tickets;
+  // Client-side search + sort on top of server filters
+  const filtered = useMemo(() => {
+    let result = searchQuery
+      ? tickets.filter((t: HDTicket) =>
+          t.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.raised_by?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : [...tickets];
+
+    result.sort((a: HDTicket, b: HDTicket) => {
+      let cmp = 0;
+      if (sortField === 'modified') {
+        cmp = new Date(a.modified).getTime() - new Date(b.modified).getTime();
+      } else if (sortField === 'priority') {
+        cmp = (PRIORITY_ORDER[a.priority] || 0) - (PRIORITY_ORDER[b.priority] || 0);
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return result;
+  }, [tickets, searchQuery, sortField, sortDir]);
 
   const getAssignee = (ticket: HDTicket) => {
     try {
@@ -265,9 +295,15 @@ function AgentDashboard() {
           <span className="col-span-4">Subject</span>
           <span className="col-span-2">Company</span>
           <span className="col-span-1">Status</span>
-          <span className="col-span-1">Priority</span>
+          <button className="col-span-1 flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('priority')}>
+            Priority
+            {sortField === 'priority' && <ArrowUpDown className="h-3 w-3" />}
+          </button>
           <span className="col-span-1">Agent</span>
-          <span className="col-span-2">Updated</span>
+          <button className="col-span-2 flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('modified')}>
+            Updated
+            {sortField === 'modified' && <ArrowUpDown className="h-3 w-3" />}
+          </button>
         </div>
 
         {/* Body */}
