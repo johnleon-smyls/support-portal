@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { 
-  Ticket, 
-  BookOpen, 
+import {
+  Ticket,
+  BookOpen,
   LogOut,
   User
 } from 'lucide-react';
@@ -35,41 +35,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
   ];
 
   return (
-    <div 
-      className="flex flex-col h-screen"
-      style={{ 
-        width: '242px', 
-        background: '#F3F4F6',
-        borderRight: '1px solid #E5E7EB'
-      }}
-    >
+    <div className="flex flex-col h-screen w-[242px] bg-zinc-100 border-r border-zinc-200">
       {/* Profile and Navigation */}
       <div className="flex flex-col p-2 space-y-2">
         {/* Profile Section */}
         <div className="flex items-center gap-2 p-2 rounded-lg">
-          <div 
-            className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(90deg, #00AEEF 0%, #2ABDAD 100%)' }}
-          >
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r from-smyls-blue-500 to-smyls-green-500">
             <User className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div 
-              className="text-sm font-medium truncate"
-              style={{ 
-                color: '#000',
-                fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif'
-              }}
-            >
+            <div className="text-sm font-medium truncate text-foreground">
               SMYLS Support
             </div>
-            <div 
-              className="text-sm truncate"
-              style={{ 
-                color: '#6B7280',
-                fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif'
-              }}
-            >
+            <div className="text-sm truncate text-muted-foreground">
               {user?.full_name || user?.email || 'User'}
             </div>
           </div>
@@ -83,26 +61,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
               <Link key={item.name} href={item.href}>
                 <div
                   className={`flex items-center gap-2 px-2 py-2 rounded-lg transition-colors ${
-                    item.current 
-                      ? 'bg-white shadow-sm' 
+                    item.current
+                      ? 'bg-white shadow-sm'
                       : 'hover:bg-white/50'
                   }`}
                 >
-                  <Icon 
-                    className="h-6 w-6"
-                    style={{
-                      stroke: item.current 
-                        ? 'url(#gradient-active)' 
-                        : '#6B7280'
-                    }}
+                  <Icon
+                    className={`h-6 w-6 ${item.current ? '' : 'text-muted-foreground'}`}
+                    {...(item.current && { style: { stroke: 'url(#gradient-active)' } })}
                   />
-                  <span 
-                    className="text-sm"
-                    style={{ 
-                      color: item.current ? '#000' : '#6B7280',
-                      fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif'
-                    }}
-                  >
+                  <span className={`text-sm ${item.current ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {item.name}
                   </span>
                 </div>
@@ -120,16 +88,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout }) => {
         <Button
           onClick={onLogout}
           variant="outline"
-          className="w-full justify-start gap-2 bg-white border-gray-200"
-          style={{
-            fontFamily: 'Inter, -apple-system, Roboto, Helvetica, sans-serif'
-          }}
+          className="w-full justify-start gap-2 bg-white border-zinc-200"
         >
-          <LogOut 
+          <LogOut
             className="h-6 w-6"
             style={{ stroke: 'url(#gradient-logout)' }}
           />
-          <span style={{ color: '#6B7280' }}>Log Out</span>
+          <span className="text-muted-foreground">Log Out</span>
         </Button>
       </div>
 

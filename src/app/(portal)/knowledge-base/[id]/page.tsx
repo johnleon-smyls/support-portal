@@ -11,7 +11,6 @@ import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { useArticle, useCategories } from '@/hooks/use-articles';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { BRAND_PRIMARY } from '@/lib/theme';
 import { formatDate, safeHtml } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 
@@ -28,7 +27,7 @@ export default function ArticleDetailsPage() {
   return (
     <>
       {/* Header Bar */}
-      <div className="h-12 flex items-center px-6 border-b border-gray-200">
+      <div className="h-12 flex items-center px-6 border-b border-border">
         <Link href="/knowledge-base">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -38,7 +37,7 @@ export default function ArticleDetailsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 overflow-auto" style={{ background: '#FFF' }}>
+      <div className="flex-1 p-6 overflow-auto bg-background">
         {isLoading ? (
           <div className="py-12">
             <LoadingSpinner message="Loading article..." />
@@ -69,11 +68,7 @@ export default function ArticleDetailsPage() {
                     {article.category && (
                       <Badge variant="outline">{categoryName}</Badge>
                     )}
-                    <Badge
-                      variant="secondary"
-                      className="text-white border-none"
-                      style={{ background: BRAND_PRIMARY }}
-                    >
+                    <Badge className="bg-primary text-primary-foreground border-none">
                       {article.status}
                     </Badge>
                   </div>
@@ -84,7 +79,7 @@ export default function ArticleDetailsPage() {
                   </CardTitle>
 
                   {/* Meta Information */}
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <User className="h-4 w-4" />
                       <span>By {article.author || article.owner || 'Unknown'}</span>
@@ -111,7 +106,7 @@ export default function ArticleDetailsPage() {
             <Card className="mb-6">
               <CardContent className="pt-6">
                 <div
-                  className="prose max-w-none prose-gray prose-headings:text-gray-900 prose-a:text-primary"
+                  className="prose max-w-none prose-zinc prose-headings:text-foreground prose-a:text-primary"
                   dangerouslySetInnerHTML={{ __html: safeHtml(article.content) }}
                 />
               </CardContent>
@@ -122,7 +117,7 @@ export default function ArticleDetailsPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center space-y-4">
-                    <p className="text-gray-600">
+                    <p className="text-muted-foreground">
                       If this article didn&apos;t solve your problem, our support team is here to help.
                     </p>
                     <div className="flex justify-center space-x-4">

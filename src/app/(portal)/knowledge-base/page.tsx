@@ -14,7 +14,6 @@ import { useDebouncedSearch } from '@/hooks/use-debounced-search';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { truncateText, formatDate } from '@/lib/format';
 import { HDArticle } from '@/types/frappe';
 import { useAuth } from '@/lib/auth';
@@ -77,20 +76,18 @@ export default function KnowledgeBasePage() {
   return (
     <>
       {/* Header Bar */}
-      <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200">
-        <h1
-          className="text-xl font-medium text-foreground"
-        >
+      <div className="h-12 flex items-center justify-between px-6 border-b border-border">
+        <h1 className="text-xl font-medium text-foreground">
           Knowledge Base
         </h1>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 overflow-auto" style={{ background: '#FFF' }}>
+      <div className="flex-1 p-6 overflow-auto bg-background">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search articles, solutions, and guides..."
               value={query}
@@ -98,13 +95,13 @@ export default function KnowledgeBasePage() {
                 setQuery(e.target.value);
                 if (!categories.some(c => c.name === e.target.value)) setSelectedCategory(null);
               }}
-              className="pl-10 h-10 rounded-lg border-gray-300"
+              className="pl-9"
             />
           </div>
 
           {categories.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">Popular Categories:</p>
+              <p className="text-sm text-muted-foreground mb-2">Popular Categories:</p>
               <div className="flex flex-wrap gap-2">
                 {categories.slice(0, 6).map((cat) => (
                   <Button
@@ -112,11 +109,6 @@ export default function KnowledgeBasePage() {
                     variant={selectedCategory === cat.id ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleCategoryClick(cat.id)}
-                    style={{
-                      background: selectedCategory === cat.id ? BRAND_GRADIENT : 'transparent',
-                      borderColor: BRAND_PRIMARY,
-                      color: selectedCategory === cat.id ? 'white' : BRAND_PRIMARY,
-                    }}
                   >
                     {cat.name}
                   </Button>
@@ -132,10 +124,10 @@ export default function KnowledgeBasePage() {
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-foreground">
               {query ? `Search Results for "${query}"` : 'All Articles'}
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {results.length} {results.length === 1 ? 'article' : 'articles'} found
             </p>
           </div>
@@ -173,14 +165,12 @@ export default function KnowledgeBasePage() {
                 <Card className="h-full hover:shadow-md transition-shadow cursor-pointer">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
-                      <CardTitle
-                        className="text-lg line-clamp-2 flex-1 text-foreground"
-                      >
+                      <CardTitle className="text-lg line-clamp-2 flex-1 text-foreground">
                         {article.title || 'Untitled Article'}
                       </CardTitle>
                     </div>
 
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
                         <span>{article.creation ? formatDate(article.creation) : 'No date'}</span>
@@ -193,17 +183,17 @@ export default function KnowledgeBasePage() {
                   </CardHeader>
 
                   <CardContent>
-                    <p className="text-gray-600 text-sm line-clamp-3">
+                    <p className="text-muted-foreground text-sm line-clamp-3">
                       {truncateText(article.content)}
                     </p>
 
-                    <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                         <span>By {article.author || article.owner || 'Unknown'}</span>
                       </div>
 
                       {(article.helpful_count || article.not_helpful_count) && (
-                        <div className="flex items-center space-x-1 text-sm text-gray-500">
+                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                           <ThumbsUp className="h-4 w-4" />
                           <span>{article.helpful_count || 0}</span>
                         </div>
@@ -221,16 +211,14 @@ export default function KnowledgeBasePage() {
           <Card className="mt-8">
             <CardContent className="py-4">
               <div className="text-center">
-                <h3
-                  className="text-lg font-medium mb-3 text-foreground"
-                >
+                <h3 className="text-lg font-medium mb-3 text-foreground">
                   Can&apos;t find what you&apos;re looking for?
                 </h3>
                 <div className="flex flex-col items-center gap-2">
                   <Link href="/tickets/new">
                     <Button>Create a ticket</Button>
                   </Link>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-muted-foreground">
                     Contact us:{' '}
                     <a href="mailto:support@smyls.ca" className="text-primary hover:underline">
                       support@smyls.ca

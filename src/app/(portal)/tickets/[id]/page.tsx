@@ -16,9 +16,7 @@ import {
 } from '@/components/ui/select';
 import {
   ArrowLeft,
-  AlertCircle,
   CheckCircle,
-  XCircle,
   MessageSquare,
   Calendar,
   Clock,
@@ -42,24 +40,12 @@ import {
 import { useAISuggestReply, useAISummarize } from '@/hooks/use-ai';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { ErrorState } from '@/components/ui/error-state';
-import { BRAND_GRADIENT, BRAND_PRIMARY } from '@/lib/theme';
 import { stripHtml, safeHtml, sanitizeHtml, formatDate } from '@/lib/format';
 import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { ScreenRecorder } from '@/components/screen-recorder/ScreenRecorder';
 import type { HDTicket } from '@/types/frappe';
 
 // ─── Customer Ticket Detail ───────────────────────────────────────────────────
-
-function getStatusIcon(status: HDTicket['status']) {
-  switch (status) {
-    case 'Open':
-      return <AlertCircle className="h-4 w-4" />;
-    case 'Closed':
-      return <XCircle className="h-4 w-4" />;
-    default:
-      return <AlertCircle className="h-4 w-4" />;
-  }
-}
 
 function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
   const { user } = useAuth();
@@ -89,7 +75,7 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
   if (ticketError) {
     return (
       <div className="flex flex-col min-h-0 h-full">
-        <div className="h-12 flex items-center px-6 border-b border-gray-200 flex-shrink-0">
+        <div className="h-12 flex items-center px-6 border-b border-border flex-shrink-0">
           <Link href="/dashboard">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -121,14 +107,14 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
   return (
     <div className="flex flex-col min-h-0 h-full">
       {/* Header Bar */}
-      <div className="h-12 flex items-center justify-between px-6 border-b border-gray-200 flex-shrink-0">
+      <div className="h-12 flex items-center justify-between px-6 border-b border-border flex-shrink-0">
         <Link href="/dashboard">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Tickets
           </Button>
         </Link>
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-muted-foreground">
           #{ticket.name}
         </span>
       </div>
@@ -145,30 +131,8 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
                 </CardTitle>
 
                 {/* Inline metadata row */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  <Badge
-                    className={`flex items-center space-x-1 ${
-                      ticket.status === 'Open'
-                        ? 'text-white border-none'
-                        : 'border-2 bg-transparent'
-                    }`}
-                    style={
-                      ticket.status === 'Open'
-                        ? { background: BRAND_GRADIENT }
-                        : {
-                            borderColor: BRAND_PRIMARY,
-                            background: BRAND_GRADIENT,
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                          }
-                    }
-                  >
-                    <span className={ticket.status === 'Open' ? 'text-white' : ''}>
-                      {getStatusIcon(ticket.status)}
-                    </span>
-                    <span>{ticket.status}</span>
-                  </Badge>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <StatusBadge status={ticket.status} />
 
                   {ticket.ticket_type && (
                     <div className="flex items-center space-x-1">
@@ -205,7 +169,7 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
           </CardHeader>
           <CardContent>
             <div
-              className="prose max-w-none prose-gray"
+              className="prose max-w-none prose-zinc"
               dangerouslySetInnerHTML={{ __html: safeHtml(ticket.description) }}
             />
           </CardContent>
@@ -216,13 +180,13 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-lg flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5 text-status-green-600" />
                 <span>Resolution</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div
-                className="prose max-w-none prose-gray"
+                className="prose max-w-none prose-zinc"
                 dangerouslySetInnerHTML={{ __html: safeHtml(ticket.resolution) }}
               />
             </CardContent>
@@ -233,15 +197,7 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center space-x-2">
-              <MessageSquare
-                className="h-5 w-5"
-                style={{
-                  background: BRAND_GRADIENT,
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              />
+              <MessageSquare className="h-5 w-5 text-primary" />
               <span>Conversation</span>
             </CardTitle>
           </CardHeader>
@@ -254,8 +210,8 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
               ) : (
                 <>
                   {replies.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                      <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <div className="text-center py-8 text-muted-foreground">
+                      <MessageSquare className="h-12 w-12 text-zinc-300 mx-auto mb-3" />
                       <p>No replies yet. Be the first to reply!</p>
                     </div>
                   ) : (
@@ -267,43 +223,46 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
                           const isFromCurrentUser = sender === user?.email;
                           const isFromAgent = reply.sent_or_received === 'Sent';
 
-                          const getBackgroundStyle = () => {
-                            if (isFromCurrentUser) return {};
-                            if (isFromAgent) return { background: BRAND_PRIMARY, borderColor: BRAND_PRIMARY, color: 'white' };
-                            return {};
-                          };
-
                           return (
                             <div
                               key={reply.name}
                               className={`p-4 rounded-lg border ${
                                 isFromCurrentUser
-                                  ? 'bg-gray-50 border-gray-200 ml-12'
-                                  : 'mr-12'
+                                  ? 'bg-muted/50 border-border ml-12'
+                                  : isFromAgent
+                                    ? 'bg-primary text-primary-foreground border-primary mr-12'
+                                    : 'border-border mr-12'
                               }`}
-                              style={getBackgroundStyle()}
                             >
                               <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-2">
                                   <div
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                                      isFromCurrentUser ? 'bg-gray-600' : 'bg-white bg-opacity-20'
+                                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                                      isFromCurrentUser
+                                        ? 'bg-zinc-600 text-white'
+                                        : isFromAgent
+                                          ? 'bg-white/20 text-white'
+                                          : 'bg-zinc-600 text-white'
                                     }`}
                                   >
                                     {sender?.charAt(0)?.toUpperCase() || 'U'}
                                   </div>
                                   <div>
-                                    <p className={`text-sm font-medium ${isFromCurrentUser ? 'text-gray-900' : 'text-white'}`}>
+                                    <p className={`text-sm font-medium ${
+                                      isFromCurrentUser ? 'text-foreground' : isFromAgent ? 'text-primary-foreground' : 'text-foreground'
+                                    }`}>
                                       {sender}
                                     </p>
-                                    <p className={`text-xs ${isFromCurrentUser ? 'text-gray-500' : 'text-white text-opacity-80'}`}>
+                                    <p className={`text-xs ${
+                                      isFromCurrentUser ? 'text-muted-foreground' : isFromAgent ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                                    }`}>
                                       {new Date(reply.creation).toLocaleString()}
                                     </p>
                                   </div>
                                 </div>
                               </div>
                               <div
-                                className={`prose max-w-none ${isFromCurrentUser ? 'prose-gray' : 'prose-invert'}`}
+                                className={`prose max-w-none ${isFromCurrentUser ? 'prose-zinc' : isFromAgent ? 'prose-invert' : 'prose-zinc'}`}
                                 dangerouslySetInnerHTML={{ __html: safeHtml(reply.content) }}
                               />
                             </div>
@@ -314,10 +273,10 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
 
                   {/* Reply form */}
                   {ticket.status !== 'Closed' && (
-                    <form onSubmit={handleSubmitReply} className="mt-6 pt-6 border-t">
+                    <form onSubmit={handleSubmitReply} className="mt-6 pt-6 border-t border-border">
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor="reply" className="block text-sm font-medium text-gray-700 mb-2">
+                          <label htmlFor="reply" className="block text-sm font-medium text-foreground mb-2">
                             Add a reply
                           </label>
                           <RichTextEditor
@@ -343,7 +302,7 @@ function CustomerTicketDetail({ ticketId }: { ticketId: string }) {
                           >
                             {isSubmittingReply ? (
                               <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 Sending...
                               </>
                             ) : (
