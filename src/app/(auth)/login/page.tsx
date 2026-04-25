@@ -44,7 +44,7 @@ export default function LoginPage() {
               alt="SMYLS Support"
               width={200}
               height={44}
-              className="h-[2em] w-auto"
+              className="h-[2.5em] w-auto"
               priority
             />
           </div>

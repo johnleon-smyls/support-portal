@@ -361,17 +361,17 @@
   .auth-form__content { width: 100%; display: flex; flex-direction: column; gap: 1.25em; }
   .auth-form__fields { display: flex; flex-direction: column; gap: 1em; padding-top: 0.625em; padding-bottom: 0.625em; }
   .auth-form__input {
-    height: 2.375em !important;
-    padding: 0.5em 0;
+    height: 2.75em !important;
+    padding: 0.5em 0.75em;
     font-size: 1em;
-    border: none !important;
-    border-bottom: 1px solid var(--color-zinc-300) !important;
-    border-radius: 0 !important;
+    border: 1px solid var(--color-zinc-200) !important;
+    border-radius: 0.5em !important;
     box-shadow: none !important;
-    outline: none !important;
+    background: white;
   }
   .auth-form__input:focus {
-    border-bottom-color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+    outline: none !important;
   }
   .auth-form__input::placeholder { font-size: 1em; font-weight: 400; color: var(--color-placeholder); }
   .auth-form__actions { display: flex; flex-direction: column; align-items: center; gap: 0.625em; }
