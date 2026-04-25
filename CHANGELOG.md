@@ -148,6 +148,64 @@ Pattern: `useForm<FormType>()` → `register()` for native inputs, `Controller` 
 
 ---
 
+## Phase 3: Core Features
+
+### 3.1 Admin Ticket Management
+Built the admin-facing ticket management views:
+
+**Admin Ticket List** (`/admin/tickets`):
+- All tickets visible across companies (agents bypass permission_query)
+- Server-side filtering: status, priority, company (via Frappe REST API filters)
+- Client-side search overlay for subject/email
+- Pagination (20 per page) with total count via frappe.client.get_count
+- StatusBadge with color-coded status and priority indicators
+
+**Admin Ticket Detail** (`/admin/tickets/[id]`):
+- Uses Helpdesk's `get_one` API (returns full ticket + communications + comments + contact)
+- Metadata sidebar: status/priority/assignment dropdowns with inline mutation
+- Two reply modes:
+  - "Reply to Customer" → `reply_via_agent` (creates Communication, sends email)
+  - "Internal Note" → `new_comment` (HD Ticket Comment, agent-only, yellow styling)
+- Conversation thread with sender identification
+- Agent assignment via `frappe.desk.form.utils.assign_to.add`
+
+**Key files:**
+| File | Purpose |
+|------|---------|
+| `src/lib/services/admin-ticket-service.ts` | Agent-specific API (list, detail, reply, assign, filter) |
+| `src/hooks/use-admin-tickets.ts` | React Query hooks for admin operations |
+| `src/app/(admin)/admin/tickets/page.tsx` | Admin ticket list with filters + pagination |
+| `src/app/(admin)/admin/tickets/[id]/page.tsx` | Admin ticket detail with sidebar + reply modes |
+| `src/components/ui/status-badge.tsx` | Case-insensitive StatusBadge with helpdesk color mappings |
+
+### 3.2 Screen Recording
+Built-in screen recording via browser Screen Capture API:
+- `useScreenRecorder` hook: wraps `getDisplayMedia()` + `MediaRecorder` (WebM/VP9)
+- `ScreenRecorder` component: start → recording indicator → preview → upload with progress
+- File upload service: multipart/form-data to Frappe's `upload_file` endpoint
+- API proxy updated to pass through multipart Content-Type
+- Integrated into ticket creation form and customer reply form
+
+### 3.3 Reply Enhancements
+Screen recorder added to customer reply form. Recordings attached as links in reply content.
+
+---
+
+## Phase 4: Backend Customizations (support_desk)
+
+### 4.1 Priority Override
+Override `helpdesk.api.doc.get_list_data` in `support_desk/overrides/helpdesk.py`. For non-agent users on the customer portal, strips `priority` from columns and row data. Registered via `override_whitelisted_methods` in hooks.py.
+
+### 4.2 User Invitation API
+Created `support_desk/api/invite.py` with three whitelisted methods:
+- `validate_invite_token` (guest): validates reset_password_key, returns user info
+- `accept_invite` (guest): sets password, enables user
+- `invite_user` (agent-only): creates disabled user, Contact, HD Customer link, sends invite email
+
+Replaces Server Scripts with version-controlled, testable Python modules.
+
+---
+
 ## Architecture Overview (updated as we go)
 
 ### How the App Works (request flow)
