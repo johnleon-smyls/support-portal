@@ -24,7 +24,7 @@ import { CreateTicketDialog } from '@/components/tickets/CreateTicketDialog';
 import type { HDTicket } from '@/types/frappe';
 
 type StatusFilter = 'All' | 'Open' | 'Replied' | 'Resolved' | 'Closed';
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 // ─── Customer Dashboard ───────────────────────────────────────────────────────
 
@@ -34,6 +34,7 @@ function CustomerDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
     return tickets
@@ -54,6 +55,9 @@ function CustomerDashboard() {
         return sortDir === 'asc' ? cmp : -cmp;
       });
   }, [tickets, statusFilter, searchQuery, sortDir]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -130,7 +134,7 @@ function CustomerDashboard() {
                 }
               />
             ) : (
-              filtered.map((ticket) => (
+              paginated.map((ticket) => (
                 <Link key={ticket.name} href={`/tickets/${ticket.name}`}>
                   <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer items-center">
                     <span className="col-span-1 text-sm text-muted-foreground">
@@ -155,6 +159,23 @@ function CustomerDashboard() {
               ))
             )}
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

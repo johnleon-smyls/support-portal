@@ -7,6 +7,8 @@ export function useAdminTickets(filters?: AdminTicketFilters) {
   return useQuery({
     queryKey: ['admin-tickets', filters],
     queryFn: () => adminTicketService.getTickets(filters),
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
   });
 }
 
