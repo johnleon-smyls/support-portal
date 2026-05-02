@@ -24,10 +24,20 @@ async function proxyToFrappe(
     });
   }
 
+  const contentType = request.headers.get('content-type') || '';
+  const isMultipart = contentType.includes('multipart/form-data');
+
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     Accept: 'application/json',
   };
+
+  // For multipart, forward the original Content-Type (includes boundary)
+  // For everything else, set JSON
+  if (isMultipart) {
+    headers['Content-Type'] = contentType;
+  } else {
+    headers['Content-Type'] = 'application/json';
+  }
 
   // Forward cookies for session auth
   const cookieHeader = request.headers.get('cookie');
@@ -36,7 +46,11 @@ async function proxyToFrappe(
   }
 
   // Read body for non-GET requests
-  const body = method !== 'GET' ? await request.text() : undefined;
+  // For multipart, forward the raw body; for JSON, forward as text
+  let body: BodyInit | undefined;
+  if (method !== 'GET') {
+    body = isMultipart ? await request.arrayBuffer() : await request.text();
+  }
 
   if (DEBUG) {
     console.log(`[API Proxy] ${method} ${url.toString()}`);

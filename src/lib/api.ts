@@ -202,27 +202,21 @@ class FrappeAPIClient {
     return this.put(`/resource/HD Ticket/${ticketId}`, ticketData);
   }
 
-  // === TICKET REPLIES (FR-09: Reply to open tickets with conversation thread) ===
+  // === TICKET REPLIES (via Helpdesk's whitelisted get_one, which includes communications) ===
   async getTicketReplies(ticketId: string) {
-    const params = {
-      filters: JSON.stringify({
-        reference_ticket: ticketId
-      }),
-      fields: JSON.stringify([
-        'name', 'content', 'commented_by', 'creation', 'modified',
-        'is_pinned', 'owner'
-      ]),
-      order_by: 'creation asc'
-    };
-
-    return this.get(`/resource/HD Ticket Comment`, { params });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response: any = await this.get(`/method/helpdesk.helpdesk.doctype.hd_ticket.api.get_one`, {
+      params: { name: ticketId },
+    });
+    return { data: response?.message?.communications || [] };
   }
 
-  async addTicketReply(ticketId: string, content: string, sender?: string) {
-    return this.post(`/resource/HD Ticket Comment`, {
-      reference_ticket: ticketId,
-      content: content,
-      commented_by: sender
+  async addTicketReply(ticketId: string, content: string) {
+    return this.post(`/method/run_doc_method`, {
+      dt: 'HD Ticket',
+      dn: ticketId,
+      method: 'create_communication_via_contact',
+      args: JSON.stringify({ message: content }),
     });
   }
 
@@ -326,25 +320,9 @@ class FrappeAPIClient {
 }
 
 // Create and export the API client instance
-// In demo mode (NEXT_PUBLIC_DEMO_MODE=true), uses a mock client with dummy data
-import { DemoAPIClient } from './demo-api';
-import { isDemoMode } from './demo-data';
-
-export const createAPIClient = (): FrappeAPIClient | DemoAPIClient => {
-  if (isDemoMode()) {
-    return new DemoAPIClient();
-  }
-
-  const config: FrappeAuthConfig = {
-    baseUrl: process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '',
-    apiVersion: process.env.NEXT_PUBLIC_FRAPPE_API_VERSION || 'v2',
-  };
-
-  if (!config.baseUrl) {
-    throw new Error('NEXT_PUBLIC_FRAPPE_BASE_URL is required');
-  }
-
-  return new FrappeAPIClient(config);
+const config: FrappeAuthConfig = {
+  baseUrl: process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '',
+  apiVersion: process.env.NEXT_PUBLIC_FRAPPE_API_VERSION || 'v2',
 };
 
-export const apiClient = createAPIClient();
+export const apiClient = new FrappeAPIClient(config);

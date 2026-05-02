@@ -5,39 +5,47 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthStore, LoginCredentials, FrappeUser } from '@/types/auth';
 import { apiClient } from '@/lib/api';
-import { isDemoMode, DEMO_USER } from '@/lib/demo-data';
+
+// Fetch role info from Helpdesk's get_user endpoint
+async function fetchHelpdeskRoles(): Promise<{
+  is_agent: boolean;
+  is_admin: boolean;
+  is_manager: boolean;
+  has_desk_access: boolean;
+  user_image?: string;
+}> {
+  try {
+    const response = await apiClient.get('/method/helpdesk.api.auth.get_user');
+    const data = (response as { message?: Record<string, unknown> })?.message;
+    return {
+      is_agent: !!data?.is_agent,
+      is_admin: !!data?.is_admin,
+      is_manager: !!data?.is_manager,
+      has_desk_access: !!data?.has_desk_access,
+      user_image: data?.user_image as string | undefined,
+    };
+  } catch {
+    return { is_agent: false, is_admin: false, is_manager: false, has_desk_access: false };
+  }
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
       isLoading: false,
       hasHydrated: false,
       error: null,
+      isAgent: false,
+      isAdmin: false,
+      isCustomer: true,
 
       // === LOGIN (FR-02: Email/password login via Frappe API) ===
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });
 
         try {
-          // Demo mode: skip real API, use demo user directly
-          if (isDemoMode()) {
-            await new Promise((r) => setTimeout(r, 400)); // Simulate network delay
-            const user: FrappeUser = {
-              name: DEMO_USER.name,
-              email: DEMO_USER.email,
-              full_name: DEMO_USER.full_name,
-              first_name: DEMO_USER.first_name,
-              last_name: DEMO_USER.last_name,
-              roles: DEMO_USER.roles,
-              enabled: 1,
-              user_type: DEMO_USER.user_type,
-            };
-            set({ user, isAuthenticated: true, isLoading: false, error: null });
-            return;
-          }
-
           const response = await apiClient.login(credentials.usr, credentials.pwd);
           const authData = response as { full_name?: string; first_name?: string; last_name?: string; message?: { full_name?: string; first_name?: string; last_name?: string } };
 
@@ -62,6 +70,9 @@ export const useAuthStore = create<AuthStore>()(
             console.warn('Could not fetch user details during login:', fetchError);
           }
 
+          // Fetch role info from Helpdesk
+          const roles = await fetchHelpdeskRoles();
+
           const user: FrappeUser = {
             name: credentials.usr,
             email: credentials.usr,
@@ -70,7 +81,12 @@ export const useAuthStore = create<AuthStore>()(
             last_name: lastName,
             roles: [],
             enabled: 1,
-            user_type: 'System User',
+            user_type: roles.has_desk_access ? 'System User' : 'Website User',
+            is_agent: roles.is_agent,
+            is_admin: roles.is_admin,
+            is_manager: roles.is_manager,
+            has_desk_access: roles.has_desk_access,
+            user_image: roles.user_image,
           };
 
           set({
@@ -78,6 +94,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
             error: null,
+            isAgent: roles.is_agent,
+            isAdmin: roles.is_admin,
+            isCustomer: !roles.is_agent && !roles.is_admin,
           });
         } catch (error: unknown) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
@@ -105,6 +124,9 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            isAgent: false,
+            isAdmin: false,
+            isCustomer: true,
           });
         }
       },
@@ -115,14 +137,8 @@ export const useAuthStore = create<AuthStore>()(
 
       // === SESSION VALIDATION (FR-02: Verify active session on page reload) ===
       checkSession: async () => {
-        // Demo mode: trust persisted state, no API validation needed
-        if (isDemoMode()) {
-          set({ isLoading: false });
-          return true;
-        }
-
         // Get the current persisted user before making API calls
-        const currentUser = useAuthStore.getState().user;
+        const currentUser = get().user;
 
         set({ isLoading: true });
 
@@ -138,19 +154,31 @@ export const useAuthStore = create<AuthStore>()(
             throw new Error('No user email returned from session check');
           }
 
-          // IMPORTANT: If sessionEmail is "Administrator" but we have a persisted user,
-          // this likely means the API token is being used without proper session cookies.
-          // In this case, trust the persisted user and just mark loading as done.
+          // If session returns "Administrator" but we expected a different user,
+          // the session is invalid — force re-login rather than trusting stale state.
           if (sessionEmail === 'Administrator' && currentUser && currentUser.email !== 'Administrator') {
-            console.log('Session check returned Administrator but we have a persisted user, keeping:', currentUser.email);
-            set({ isLoading: false });
-            return true;
+            console.warn('Session returned Administrator instead of expected user — clearing auth state');
+            set({
+              user: null,
+              isAuthenticated: false,
+              isLoading: false,
+              isAgent: false,
+              isAdmin: false,
+              isCustomer: true,
+            });
+            return false;
           }
 
-          // If the session email matches our persisted user, no need to re-fetch everything
+          // If the session email matches our persisted user, refresh roles but keep user data
           if (currentUser && currentUser.email === sessionEmail) {
             console.log('Session valid for user:', sessionEmail);
-            set({ isLoading: false });
+            const roles = await fetchHelpdeskRoles();
+            set({
+              isLoading: false,
+              isAgent: roles.is_agent,
+              isAdmin: roles.is_admin,
+              isCustomer: !roles.is_agent && !roles.is_admin,
+            });
             return true;
           }
 
@@ -235,6 +263,9 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
+        isAgent: state.isAgent,
+        isAdmin: state.isAdmin,
+        isCustomer: state.isCustomer,
       }),
       onRehydrateStorage: () => {
         return (state, error) => {

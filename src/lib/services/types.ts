@@ -44,6 +44,6 @@ export const ARTICLE_FIELDS = [
 ] as const;
 
 export const REPLY_FIELDS = [
-  'name', 'content', 'commented_by', 'creation', 'modified',
-  'is_pinned', 'owner',
+  'name', 'content', 'sender', 'sender_full_name', 'creation', 'modified',
+  'communication_type', 'sent_or_received', 'subject', 'owner',
 ] as const;

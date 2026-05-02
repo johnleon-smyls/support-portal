@@ -7,6 +7,8 @@ export class TicketService implements ITicketService {
   async getTickets(filters?: Record<string, unknown>): Promise<HDTicket[]> {
     const params: Record<string, string> = {
       fields: JSON.stringify(TICKET_FIELDS),
+      order_by: 'modified desc',
+      limit_page_length: '50',
     };
     if (filters) {
       params.filters = JSON.stringify(filters);
@@ -21,8 +23,13 @@ export class TicketService implements ITicketService {
   }
 
   async createTicket(data: CreateTicketData): Promise<HDTicket> {
-    const response = await apiClient.post<{ data: HDTicket }>('/resource/HD Ticket', data);
-    return response.data;
+    const response = await apiClient.post<{ message: HDTicket }>('/method/support_desk.api.ticket.create_ticket', {
+      subject: data.subject,
+      description: data.description,
+      ticket_type: data.ticket_type || 'Support',
+      raised_by: data.raised_by,
+    });
+    return response.message;
   }
 
   async updateTicket(id: string, data: Partial<HDTicket>): Promise<HDTicket> {
@@ -41,20 +48,20 @@ export class TicketService implements ITicketService {
   }
 
   async getTicketReplies(ticketId: string): Promise<HDCommunication[]> {
-    const response = await apiClient.get<FrappeResponse<HDCommunication>>('/resource/HD Ticket Comment', {
-      params: {
-        filters: JSON.stringify({ reference_ticket: ticketId }),
-        fields: JSON.stringify(REPLY_FIELDS),
-        order_by: 'creation asc',
-      },
-    });
-    return response.data;
+    // Use Helpdesk's get_one which returns communications with proper permissions
+    const response = await apiClient.get<{ message: { communications: HDCommunication[] } }>(
+      '/method/helpdesk.helpdesk.doctype.hd_ticket.api.get_one',
+      { params: { name: ticketId } }
+    );
+    return response.message?.communications || [];
   }
 
   async addTicketReply(ticketId: string, content: string): Promise<HDCommunication> {
-    const response = await apiClient.post<{ data: HDCommunication }>('/resource/HD Ticket Comment', {
-      reference_ticket: ticketId,
-      content,
+    const response = await apiClient.post<{ data: HDCommunication }>('/method/run_doc_method', {
+      dt: 'HD Ticket',
+      dn: ticketId,
+      method: 'create_communication_via_contact',
+      args: JSON.stringify({ message: content }),
     });
     return response.data;
   }

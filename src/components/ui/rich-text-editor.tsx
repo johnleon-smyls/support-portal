@@ -1,39 +1,22 @@
-// === RICH TEXT EDITOR (FR-14: Rich text formatting for ticket descriptions and replies) ===
-// TipTap-based editor with bold, italic, headings, lists, images, links, and more.
-
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import ImageResize from 'tiptap-extension-resize-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import {
   Bold,
   Italic,
   Underline as UnderlineIcon,
-  Strikethrough,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
   Link2,
   ImageIcon,
-  Undo,
-  Redo,
-  Type,
-  Heading1,
-  Heading2,
-  Code,
-  Quote,
-  Minus
 } from 'lucide-react';
-import { Button } from './button';
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
+import { uploadFile } from '@/lib/services/file-service';
 
 interface RichTextEditorProps {
   content: string;
@@ -42,347 +25,239 @@ interface RichTextEditorProps {
   disabled?: boolean;
 }
 
+/**
+ * Upload an image file to Frappe and insert it into the editor.
+ * Shared by button, paste, and drag handlers.
+ */
+async function uploadAndInsertImage(file: File | Blob, editor: Editor) {
+  const frappeUrl = process.env.NEXT_PUBLIC_FRAPPE_BASE_URL || '';
+  const filename = file instanceof File ? file.name : `image-${Date.now()}.png`;
+
+  try {
+    const result = await uploadFile(file, { filename, isPrivate: false });
+    const src = result.file_url?.startsWith('http')
+      ? result.file_url
+      : `${frappeUrl}${result.file_url}`;
+    editor.chain().focus().setImage({ src }).run();
+  } catch {
+    // Fallback to base64 if upload fails
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      editor.chain().focus().setImage({ src: e.target?.result as string }).run();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
 export function RichTextEditor({
   content,
   onChange,
-  placeholder = 'Start typing...',
-  disabled = false
+  placeholder = 'Type here...',
+  disabled = false,
 }: RichTextEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  const [active, setActive] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+  });
 
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      // StarterKit includes: Document, Paragraph, Text, Blockquote, BulletList, CodeBlock,
-      // HardBreak, Heading, HorizontalRule, ListItem, OrderedList, Bold, Code, Italic, Strike
-      // Disable features we're adding separately to avoid duplicate extension warnings
       StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3],
-        },
+        heading: false,
+        codeBlock: false,
+        blockquote: false,
+        horizontalRule: false,
       }),
-      Underline, // Not included in StarterKit, safe to add
-      Image.configure({
-        inline: true,
-        allowBase64: true,
-      }),
-      ImageResize.configure({
-        inline: true,
-      }),
+      Underline,
+      Image.configure({ inline: true, allowBase64: true }),
+      ImageResize,
       Link.configure({
-        openOnClick: false,
+        openOnClick: 'whenNotEditable',
+        autolink: false,
+        linkOnPaste: true,
         HTMLAttributes: {
-          class: 'text-blue-600 underline hover:text-blue-800',
+          class: 'text-primary underline hover:text-smyls-blue-700 cursor-pointer',
         },
       }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Placeholder.configure({
-        placeholder,
-      }),
+      Placeholder.configure({ placeholder }),
     ],
     content,
     editable: !disabled,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+    onUpdate: ({ editor: e }) => {
+      onChange(e.getHTML());
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[150px] p-4',
+      },
+      handlePaste: (_view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (!file || !editor) return false;
+            uploadAndInsertImage(file, editor);
+            return true;
+          }
+        }
+        return false;
+      },
+      handleClick: (view, pos) => {
+        const { state } = view;
+        const linkMark = state.doc.resolve(pos).marks().find(m => m.type.name === 'link');
+        if (linkMark) {
+          const oldHref = linkMark.attrs.href;
+          setTimeout(() => {
+            const newUrl = window.prompt('Edit URL (clear to remove):', oldHref);
+            if (newUrl === null) return;
+            if (newUrl === '') {
+              editor?.chain().focus().extendMarkRange('link').unsetLink().run();
+            } else {
+              editor?.chain().focus().extendMarkRange('link').run();
+              const { from, to } = editor!.state.selection;
+              const currentText = editor!.state.doc.textBetween(from, to);
+              if (currentText === oldHref) {
+                editor?.chain()
+                  .focus()
+                  .extendMarkRange('link')
+                  .deleteSelection()
+                  .insertContent(`<a href="${newUrl}" target="_blank">${newUrl}</a>`)
+                  .run();
+              } else {
+                editor?.chain().focus().extendMarkRange('link').setLink({ href: newUrl }).run();
+              }
+            }
+          }, 0);
+          return true;
+        }
+        return false;
       },
     },
   });
 
+  // Listen to editor transactions to sync active states
+  useEffect(() => {
+    if (!editor) return;
+    const updateActive = () => {
+      setActive({
+        bold: editor.isActive('bold'),
+        italic: editor.isActive('italic'),
+        underline: editor.isActive('underline'),
+      });
+    };
+    editor.on('transaction', updateActive);
+    return () => { editor.off('transaction', updateActive); };
+  }, [editor]);
+
+  // Sync external content changes (AI suggestions)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content]);
+
+  // Native DOM drop handler — intercepts before TipTap/browser can insert raw <img>
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container || !editor) return;
+
+    const handleDrop = (e: DragEvent) => {
+      const files = e.dataTransfer?.files;
+      if (!files?.length) return;
+      const file = files[0];
+      if (!file.type.startsWith('image/')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      uploadAndInsertImage(file, editor);
+    };
+
+    // Must use capture phase to beat TipTap's handler
+    container.addEventListener('drop', handleDrop, true);
+    container.addEventListener('dragover', (e) => {
+      if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+    });
+
+    return () => {
+      container.removeEventListener('drop', handleDrop, true);
+    };
+  }, [editor]);
+
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (!editor) return;
-
     const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string;
-      editor.chain().focus().setImage({ src: base64 }).run();
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (!file || !file.type.startsWith('image/')) return;
+    uploadAndInsertImage(file, editor);
+    event.target.value = '';
   }, [editor]);
 
   const addLink = useCallback(() => {
     if (!editor) return;
-
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('Enter URL:', previousUrl);
-
-    if (url === null) return;
-
-    if (url === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    if (editor.isActive('link')) {
+      const prev = editor.getAttributes('link').href;
+      const url = window.prompt('Edit URL (clear to remove):', prev);
+      if (url === null) return;
+      if (url === '') {
+        editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      } else {
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      }
       return;
     }
-
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    const url = window.prompt('Enter URL:');
+    if (!url) return;
+    const { from, to } = editor.state.selection;
+    if (from === to) {
+      editor.chain().focus()
+        .insertContent(`<a href="${url}" target="_blank">${url}</a> `)
+        .run();
+    } else {
+      editor.chain().focus().setLink({ href: url }).run();
+    }
   }, [editor]);
 
-  if (!editor) {
-    return null;
-  }
+  if (!editor) return null;
+
+  const btn = (isActive: boolean) =>
+    cn('h-8 w-8 p-0 rounded-md inline-flex items-center justify-center cursor-pointer transition-colors',
+      isActive ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      disabled && 'opacity-50 pointer-events-none'
+    );
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
-      {/* Toolbar */}
-      <div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap gap-1">
-        {/* Text Formatting */}
-        <div className="flex gap-1 border-r border-gray-300 pr-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            disabled={disabled}
-            className={editor.isActive('bold') ? 'bg-gray-200' : ''}
-            title="Bold"
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            disabled={disabled}
-            className={editor.isActive('italic') ? 'bg-gray-200' : ''}
-            title="Italic"
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleUnderline().run()}
-            disabled={disabled}
-            className={editor.isActive('underline') ? 'bg-gray-200' : ''}
-            title="Underline"
-          >
-            <UnderlineIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            disabled={disabled}
-            className={editor.isActive('strike') ? 'bg-gray-200' : ''}
-            title="Strikethrough"
-          >
-            <Strikethrough className="h-4 w-4" />
-          </Button>
-        </div>
+    <div ref={editorContainerRef} className="border border-border rounded-lg overflow-hidden bg-white">
+      <div className="border-b border-border bg-muted/30 p-1.5 flex gap-0.5">
+        <button type="button" className={btn(active.bold)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
+          <Bold className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(active.italic)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
+          <Italic className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(active.underline)} onMouseDown={e => e.preventDefault()} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
+          <UnderlineIcon className="h-4 w-4" />
+        </button>
 
-        {/* Headings */}
-        <div className="flex gap-1 border-r border-gray-300 pr-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            disabled={disabled}
-            className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
-            title="Heading 1"
-          >
-            <Heading1 className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            disabled={disabled}
-            className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
-            title="Heading 2"
-          >
-            <Heading2 className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().setParagraph().run()}
-            disabled={disabled}
-            className={editor.isActive('paragraph') ? 'bg-gray-200' : ''}
-            title="Paragraph"
-          >
-            <Type className="h-4 w-4" />
-          </Button>
-        </div>
+        <div className="w-px bg-border mx-1" />
 
-        {/* Lists */}
-        <div className="flex gap-1 border-r border-gray-300 pr-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            disabled={disabled}
-            className={editor.isActive('bulletList') ? 'bg-gray-200' : ''}
-            title="Bullet List"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            disabled={disabled}
-            className={editor.isActive('orderedList') ? 'bg-gray-200' : ''}
-            title="Numbered List"
-          >
-            <ListOrdered className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Alignment */}
-        <div className="flex gap-1 border-r border-gray-300 pr-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().setTextAlign('left').run()}
-            disabled={disabled}
-            className={editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}
-            title="Align Left"
-          >
-            <AlignLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().setTextAlign('center').run()}
-            disabled={disabled}
-            className={editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}
-            title="Align Center"
-          >
-            <AlignCenter className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().setTextAlign('right').run()}
-            disabled={disabled}
-            className={editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}
-            title="Align Right"
-          >
-            <AlignRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Insert */}
-        <div className="flex gap-1 border-r border-gray-300 pr-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={addLink}
-            disabled={disabled}
-            className={editor.isActive('link') ? 'bg-gray-200' : ''}
-            title="Insert Link"
-          >
-            <Link2 className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            title="Upload Image"
-          >
-            <ImageIcon className="h-4 w-4" />
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            disabled={disabled}
-            className={editor.isActive('blockquote') ? 'bg-gray-200' : ''}
-            title="Quote"
-          >
-            <Quote className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-            disabled={disabled}
-            className={editor.isActive('codeBlock') ? 'bg-gray-200' : ''}
-            title="Code Block"
-          >
-            <Code className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().setHorizontalRule().run()}
-            disabled={disabled}
-            title="Horizontal Rule"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Undo/Redo */}
-        <div className="flex gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={disabled || !editor.can().undo()}
-            title="Undo"
-          >
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={disabled || !editor.can().redo()}
-            title="Redo"
-          >
-            <Redo className="h-4 w-4" />
-          </Button>
-        </div>
+        <button type="button" className={btn(false)} onMouseDown={e => e.preventDefault()} onClick={addLink} title="Insert Link">
+          <Link2 className="h-4 w-4" />
+        </button>
+        <button type="button" className={btn(false)} onMouseDown={e => e.preventDefault()} onClick={() => fileInputRef.current?.click()} title="Insert Image">
+          <ImageIcon className="h-4 w-4" />
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
       </div>
 
-      {/* Editor Content */}
-      <EditorContent editor={editor} className="prose-editor" />
+      <div className="prose-editor">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
